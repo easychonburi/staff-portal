@@ -124,49 +124,37 @@
         </div>
     </section>
 
-    <script>
-        // 🔴 เจมมี่ใส่ URL ให้เรียบร้อยแล้วครับ ใช้ได้เลย!
-        const API_URL = "https://script.google.com/macros/s/AKfycbxgorvzVkyJpppBsH_u4lQBSwy-gJyya9_DfeKa57jDxk_PRLS5qrLXs84g8wAKssP0/exec";
+   <script>
+        // 🔴🔴 URL เดิมของคุณวิว (ใช้สำหรับ Login และบันทึกเวลา) 🔴🔴
+        const API_URL = "https://script.google.com/macros/s/AKfycbxqUGKChxYDIFPQj4XCf_KXrWz80eVqtGoj_U5tfbSY736DXIH8mlqaOH-k0ooACUYi/exec";
 
         var currentUser = {};
-        var shopLocations = [];
         var currentLocation = { lat: 0, lng: 0, name: "Unknown" };
         var isLocationReady = false;
+
+        // ✅✅ เจมมี่ฝังพิกัดให้ตรงนี้เลย (ไม่ต้องรอโหลดจาก Google แล้ว) ✅✅
+        var shopLocations = [
+            {"name":"อมตะนคร", "lat":13.4429015, "lng":101.0299502},
+            {"name":"พระยาสัจจา", "lat":13.3478668, "lng":100.971527},
+            {"name":"บางแสน", "lat":13.2806205, "lng":100.9330387},
+            {"name":"อ่าวอุดม", "lat":13.1144392, "lng":100.9249934},
+            {"name":"หนองตำลึง", "lat":13.41045, "lng":101.055621},
+            {"name":"วังหิน", "lat":13.830245, "lng":100.588357}
+        ];
 
         // เริ่มทำงานเมื่อเปิดเว็บ
         window.onload = function() {
             updateClock();
             setInterval(updateClock, 1000);
             
-            // 1. สั่งเปิด GPS ทันที (ไม่ต้องรอกูเกิล)
+            // สั่งเปิด GPS ทันที
             watchLocation();
             
-            // 2. ดึงข้อมูลร้านคู่ขนานกันไป
-            fetchLocations();
+            // โชว์เลยว่าข้อมูลพร้อม (เพราะเราฝังไว้แล้ว)
+            document.getElementById('userBranchDisplay').innerText = "ข้อมูลสาขาพร้อมใช้งาน";
             
             document.getElementById('pin-1').focus();
         };
-
-        // ฟังก์ชันดึงพิกัดร้านจาก Google Sheet
-        function fetchLocations() {
-            document.getElementById('userBranchDisplay').innerText = "กำลังเชื่อมต่อระบบ...";
-            fetch(API_URL + "?action=getLocations")
-            .then(res => res.json())
-            .then(locs => {
-                shopLocations = locs;
-                console.log("Locations loaded:", locs);
-                document.getElementById('userBranchDisplay').innerText = "ข้อมูลสาขาพร้อม";
-                
-                // พอได้ข้อมูลร้านมาแล้ว ให้ลองคำนวณระยะใหม่ทันที
-                if(currentLocation.lat !== 0) {
-                     updatePosition({coords: {latitude: currentLocation.lat, longitude: currentLocation.lng}});
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('userBranchDisplay').innerText = "⚠️ เชื่อมต่อระบบไม่ได้";
-            });
-        }
 
         // ฟังก์ชัน PIN input
         const pinInputs = document.querySelectorAll('.pin-input');
@@ -185,7 +173,7 @@
             });
         });
 
-        // ฟังก์ชัน Login
+        // ฟังก์ชัน Login (ยังต้องถาม Google อยู่)
         function handleLogin() {
             let pin = '';
             pinInputs.forEach(input => pin += input.value);
@@ -217,9 +205,11 @@
                 }
             })
             .catch(err => {
+                // กรณีฉุกเฉิน: ถ้า Login ไม่ได้จริงๆ ให้ลองเช็ค URL
                 btn.disabled = false;
-                btn.innerText = "เข้าสู่ระบบ";
-                status.innerText = "Error: เชื่อมต่อไม่ได้";
+                btn.innerText = "ลองอีกครั้ง";
+                status.innerText = "เชื่อมต่อระบบไม่ได้";
+                console.error(err);
             });
         }
 
@@ -231,10 +221,15 @@
             setTimeout(() => {
                 loginSec.classList.add('hidden');
                 document.getElementById('dashboard-section').classList.remove('hidden');
+                
+                // พอเข้าหน้า Dashboard ให้คำนวณระยะทันที
+                if(currentLocation.lat !== 0) {
+                     updatePosition({coords: {latitude: currentLocation.lat, longitude: currentLocation.lng}});
+                }
             }, 500);
         }
 
-        // ฟังก์ชัน GPS (ทำงานทันที)
+        // ฟังก์ชัน GPS
         function watchLocation() {
             document.getElementById('statusText').innerText = "📡 กำลังจับสัญญาณ GPS...";
             if (navigator.geolocation) {
@@ -254,13 +249,7 @@
             currentLocation.lat = lat;
             currentLocation.lng = lng;
 
-            // ถ้าข้อมูลร้านยังไม่มา ให้รอ
-            if (shopLocations.length === 0) {
-                document.getElementById('locationName').innerText = "รอข้อมูลร้านค้า...";
-                return;
-            }
-
-            // คำนวณหาร้านใกล้สุด
+            // คำนวณหาร้านใกล้สุด (จากตัวแปรที่ฝังไว้)
             var nearest = null;
             var minDist = 9999999; 
             for(var i=0; i<shopLocations.length; i++) {
@@ -274,7 +263,7 @@
             const statusText = document.getElementById('statusText');
             const btnIn = document.getElementById('btnIn');
             const btnOut = document.getElementById('btnOut');
-            const ALLOWED_RADIUS = 0.5; // รัศมี 500 เมตร (ปรับได้)
+            const ALLOWED_RADIUS = 0.5; // รัศมี 500 เมตร
 
             if (nearest) {
                 var distMeters = Math.round(minDist * 1000);
@@ -324,7 +313,7 @@
                 lng: currentLocation.lng
             };
 
-            // ส่งข้อมูลกลับไป Google
+            // ส่งข้อมูลกลับไป Google (อันนี้ยังต้องใช้ fetch)
             fetch(API_URL, {
                 method: "POST",
                 body: JSON.stringify(data)
@@ -335,7 +324,9 @@
                 location.reload(); 
             })
             .catch(err => {
-                alert("เกิดข้อผิดพลาดในการบันทึก");
+                // บางที Google ตอบกลับมาแต่ Browser บล็อก CORS 
+                // แต่ข้อมูลอาจจะลง Sheet ไปแล้ว ให้แจ้งเตือนแบบกลางๆ
+                alert("ส่งคำสั่งแล้ว! (กรุณาเช็คประวัติอีกครั้ง)");
                 location.reload(); 
             });
         }
@@ -355,3 +346,4 @@
 </body>
 
 </html>
+

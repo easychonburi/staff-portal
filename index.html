@@ -6,14 +6,13 @@
     <title>Easy Time Attendance</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* --- RESET & BASIC SETUP --- */
+        /* CSS เดิมทั้งหมด */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: #FFF9F0; color: #333; min-height: 100vh; overflow-x: hidden; }
         .hidden { display: none !important; }
         .flex-center { display: flex; justify-content: center; align-items: center; }
         .flex-col { display: flex; flex-direction: column; }
-
-        /* --- LOGIN PAGE --- */
+        
         #login-section { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ED1C24; z-index: 100; padding: 2rem; text-align: center; transition: opacity 0.5s; }
         .login-brand { margin-top: 15vh; margin-bottom: 2rem; }
         .brand-text-main { font-size: 3rem; font-weight: 800; color: #FFDE17; line-height: 1; }
@@ -22,10 +21,8 @@
         .pin-input { width: 60px; height: 60px; background-color: #FFF9F0; border: none; border-radius: 12px; text-align: center; font-size: 2rem; font-weight: bold; color: #333; outline: none; }
         .pin-input:focus { box-shadow: 0 0 0 4px rgba(255, 222, 23, 0.5); }
         .btn-login { background-color: #FFDE17; color: #000; font-size: 1.5rem; font-weight: 800; padding: 12px 40px; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; }
-        .btn-login:active { transform: scale(0.95); }
         .btn-login:disabled { background-color: #ccc; cursor: not-allowed; }
 
-        /* --- DASHBOARD --- */
         #dashboard-section { padding-bottom: 40px; }
         .dashboard-header { background-color: #ED1C24; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; padding: 20px 20px 30px 20px; color: white; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .header-left h1 { color: #FFDE17; font-size: 1.8rem; font-weight: 800; line-height: 1; margin-bottom: 5px; }
@@ -33,7 +30,6 @@
         .container { padding: 0 20px; max-width: 500px; margin: 0 auto; }
         .card { background: white; border: 2px solid #000; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
         
-        /* Location Status */
         .location-grid { display: flex; align-items: center; gap: 15px; }
         .status-dot { width: 50px; height: 50px; background: #ccc; border-radius: 50%; flex-shrink: 0; transition: background 0.3s; }
         .status-dot.active { background: linear-gradient(135deg, #2ecc71, #27ae60); box-shadow: 0 0 10px #2ecc71; }
@@ -44,14 +40,12 @@
         .text-green { color: #27ae60; }
         .text-red { color: #c0392b; }
 
-        /* Clock */
         .clock-card { text-align: center; }
         .clock-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 5px; }
         .digital-clock { font-size: 3rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: 2px; }
 
-        /* Buttons */
         .action-row { display: flex; gap: 15px; margin-bottom: 25px; }
-        .action-btn { flex: 1; border: none; border-radius: 20px; padding: 25px 10px; color: white; cursor: pointer; text-align: center; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.15); opacity: 0.5; pointer-events: none; } /* Disabled by default */
+        .action-btn { flex: 1; border: none; border-radius: 20px; padding: 25px 10px; color: white; cursor: pointer; text-align: center; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.15); opacity: 0.5; pointer-events: none; }
         .action-btn.ready { opacity: 1; pointer-events: auto; }
         .action-btn:active { transform: scale(0.96); }
         .btn-checkin { background-color: #009245; }
@@ -59,20 +53,38 @@
         .action-btn small { display: block; font-size: 1rem; opacity: 0.9; }
         .action-btn span { display: block; font-size: 1.8rem; font-weight: 800; }
 
-        /* Loader */
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #ED1C24; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .history-section { background: #fff; border-radius: 20px; padding: 20px; border: 2px solid #000; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
+        .history-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .history-list { list-style: none; }
+        .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 1rem; color: #555; }
+        .history-item:last-child { border-bottom: none; }
+
+        /* Modal CSS */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-box { background: white; width: 85%; max-width: 350px; border-radius: 20px; padding: 30px 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        
+        .modal-btn { background: #ED1C24; color: white; border: none; padding: 12px 25px; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 5px; }
+        .modal-btn.action-req { background: #ffc107; color: #000; margin-bottom: 10px; }
+        
+        .status-alert { background: #fff3cd; color: #856404; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ffeeba; font-size: 0.9rem; text-align: left; }
+        .status-alert.late { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .status-alert.ot { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+
+        .checkmark-circle { width: 80px; height: 80px; position: relative; display: inline-block; vertical-align: top; margin-bottom: 10px; }
+        .checkmark-circle .background { width: 80px; height: 80px; border-radius: 50%; background: #4CAF50; position: absolute; }
+        .checkmark-circle .draw:after { content: ''; position: absolute; left: 22px; top: 40px; width: 35px; height: 15px; border-bottom: 5px solid white; border-left: 5px solid white; transform: scaleX(-1) rotate(135deg); transform-origin: left top; animation: checkmark 0.6s ease forwards; }
+        @keyframes checkmark { 0% { height: 0; width: 0; opacity: 0; } 50% { opacity: 1; height: 0; width: 0; } 100% { height: 15px; width: 35px; opacity: 1; } }
+        .modal-spinner { border: 5px solid #f3f3f3; border-top: 5px solid #ED1C24; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
     </style>
 </head>
 <body>
 
     <section id="login-section" class="flex-center flex-col">
-        <div class="login-brand">
-            <div class="brand-text-main">EASY</div>
-        </div>
-        <div class="login-instruction">
-            กรุณาใส่รหัสพนักงาน<br>4 หลัก (PIN)
-        </div>
+        <div class="login-brand"><div class="brand-text-main">EASY</div></div>
+        <div class="login-instruction">กรุณาใส่รหัสพนักงาน<br>4 หลัก (PIN)</div>
         <div class="pin-container">
             <input type="tel" maxlength="1" class="pin-input" id="pin-1" data-index="1">
             <input type="tel" maxlength="1" class="pin-input" id="pin-2" data-index="2">
@@ -88,7 +100,7 @@
             <div class="header-left">
                 <h1>EASY</h1>
                 <h2 id="userNameDisplay">สวัสดี...</h2>
-                <small id="userBranchDisplay" style="color:#FFDE17;">รอข้อมูล...</small>
+                <small id="userBranchDisplay" style="color:#FFDE17;">ข้อมูลสาขาพร้อมใช้งาน</small>
             </div>
             <div class="menu-icon" onclick="location.reload()">↻</div>
         </div>
@@ -112,27 +124,61 @@
             </div>
 
             <div class="action-row">
-                <button id="btnIn" class="action-btn btn-checkin" onclick="recordAction('เข้างาน (Clock In)')">
+                <button id="btnIn" class="action-btn btn-checkin" onclick="recordAction('เข้างาน')">
                     <small>บันทึก</small>
                     <span>เข้างาน</span>
                 </button>
-                <button id="btnOut" class="action-btn btn-checkout" onclick="recordAction('ออกงาน (Clock Out)')">
+                <button id="btnOut" class="action-btn btn-checkout" onclick="recordAction('ออกงาน')">
                     <small>บันทึก</small>
                     <span>ออกงาน</span>
                 </button>
             </div>
+
+            <div class="history-section">
+                <div class="history-title">🕒 ประวัติล่าสุด (4 ครั้งล่าสุด)</div>
+                <ul class="history-list" id="history-list">
+                    <li class="history-item" style="justify-content: center; color: #999;">กำลังโหลดข้อมูล...</li>
+                </ul>
+            </div>
         </div>
     </section>
 
+    <div id="customModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div id="modalLoading">
+                <div class="modal-spinner"></div>
+                <div class="modal-title">กำลังบันทึก...</div>
+                <div class="modal-desc">กรุณารอสักครู่ ระบบกำลังส่งข้อมูล</div>
+            </div>
+            <div id="modalSuccess" class="hidden">
+                <div class="checkmark-circle">
+                    <div class="background"></div>
+                    <div class="draw"></div>
+                </div>
+                <div class="modal-title" style="color:#4CAF50;">บันทึกสำเร็จ!</div>
+                <div class="modal-desc" id="modalSuccessMsg">ลงเวลาเรียบร้อยแล้ว</div>
+                
+                <div id="modalAlertArea"></div>
+
+                <button class="modal-btn" onclick="closeModal()">ตกลง</button>
+            </div>
+        </div>
+    </div>
+
    <script>
-        // 🔴🔴 URL เดิมของคุณวิว (ใช้สำหรับ Login และบันทึกเวลา) 🔴🔴
-        const API_URL = "https://script.google.com/macros/s/AKfycbxqUGKChxYDIFPQj4XCf_KXrWz80eVqtGoj_U5tfbSY736DXIH8mlqaOH-k0ooACUYi/exec";
+        // 🔴🔴 ใส่ URL เดิมของคุณวิวตรงนี้ 🔴🔴
+        const API_URL = "https://script.google.com/macros/s/AKfycbzbVQiuK7-NLYL-W76qMuKl4p1OvigkFPw7oOiYMgxmnK3WUPxQqUJluq-PusnbAiAk/exec";
+
+        // ⚙️ ตั้งค่าเวลากะงาน (ใช้เลข 25 แทนตี 1)
+        const SHIFT_1_START = 9;  const SHIFT_1_END = 17;
+        const SHIFT_2_START = 17; const SHIFT_2_END = 25;
 
         var currentUser = {};
         var currentLocation = { lat: 0, lng: 0, name: "Unknown" };
         var isLocationReady = false;
+        var pendingStatus = "ปกติ";
 
-        // ✅✅ เจมมี่ฝังพิกัดให้ตรงนี้เลย (ไม่ต้องรอโหลดจาก Google แล้ว) ✅✅
+        // พิกัดร้าน
         var shopLocations = [
             {"name":"อมตะนคร", "lat":13.4429015, "lng":101.0299502},
             {"name":"พระยาสัจจา", "lat":13.3478668, "lng":100.971527},
@@ -142,21 +188,11 @@
             {"name":"วังหิน", "lat":13.824285, "lng":100.590109}
         ];
 
-        // เริ่มทำงานเมื่อเปิดเว็บ
         window.onload = function() {
-            updateClock();
-            setInterval(updateClock, 1000);
-            
-            // สั่งเปิด GPS ทันที
-            watchLocation();
-            
-            // โชว์เลยว่าข้อมูลพร้อม (เพราะเราฝังไว้แล้ว)
-            document.getElementById('userBranchDisplay').innerText = "ข้อมูลสาขาพร้อมใช้งาน";
-            
+            updateClock(); setInterval(updateClock, 1000); watchLocation();
             document.getElementById('pin-1').focus();
         };
 
-        // ฟังก์ชัน PIN input
         const pinInputs = document.querySelectorAll('.pin-input');
         pinInputs.forEach((input, index) => {
             input.addEventListener('input', (e) => {
@@ -173,43 +209,27 @@
             });
         });
 
-        // ฟังก์ชัน Login
         function handleLogin() {
             let pin = '';
             pinInputs.forEach(input => pin += input.value);
-
-            if (pin.length !== 4) {
-                document.getElementById('loginStatus').innerText = "กรุณากรอกให้ครบ 4 หลัก";
-                return;
-            }
-
+            if (pin.length !== 4) { document.getElementById('loginStatus').innerText = "กรุณากรอกให้ครบ 4 หลัก"; return; }
             const btn = document.getElementById('btnLoginBtn');
             const status = document.getElementById('loginStatus');
-            btn.disabled = true;
-            btn.innerHTML = '<div class="loader"></div>';
-            status.innerText = "กำลังตรวจสอบข้อมูล...";
+            btn.disabled = true; btn.innerHTML = '<div class="loader"></div>'; status.innerText = "กำลังตรวจสอบข้อมูล...";
 
-            // ยิงไปถาม Google
             fetch(API_URL + "?action=verifyPin&pin=" + pin)
             .then(res => res.json())
             .then(result => {
                 if (result.success) {
-                    currentUser = result;
+                    currentUser = result; 
+                    if(!currentUser.role) currentUser.role = 'daily'; 
                     enterDashboard();
+                    fetchHistory();
                 } else {
-                    btn.disabled = false;
-                    btn.innerText = "เข้าสู่ระบบ";
-                    status.innerText = "❌ รหัสไม่ถูกต้อง";
-                    pinInputs.forEach(input => input.value = '');
-                    document.getElementById('pin-1').focus();
+                    btn.disabled = false; btn.innerText = "เข้าสู่ระบบ"; status.innerText = "❌ รหัสไม่ถูกต้อง";
+                    pinInputs.forEach(input => input.value = ''); document.getElementById('pin-1').focus();
                 }
-            })
-            .catch(err => {
-                btn.disabled = false;
-                btn.innerText = "ลองอีกครั้ง";
-                status.innerText = "เชื่อมต่อระบบไม่ได้";
-                console.error(err);
-            });
+            }).catch(err => { btn.disabled = false; btn.innerText = "ลองอีกครั้ง"; status.innerText = "เชื่อมต่อระบบไม่ได้"; });
         }
 
         function enterDashboard() {
@@ -218,138 +238,179 @@
             const loginSec = document.getElementById('login-section');
             loginSec.style.opacity = '0';
             setTimeout(() => {
-                loginSec.classList.add('hidden');
-                document.getElementById('dashboard-section').classList.remove('hidden');
-                
-                // พอเข้าหน้า Dashboard ให้คำนวณระยะทันที ถ้ามีพิกัดแล้ว
-                if(currentLocation.lat !== 0) {
-                     updatePosition({coords: {latitude: currentLocation.lat, longitude: currentLocation.lng}});
-                }
+                loginSec.classList.add('hidden'); document.getElementById('dashboard-section').classList.remove('hidden');
+                if(currentLocation.lat !== 0) updatePosition({coords: {latitude: currentLocation.lat, longitude: currentLocation.lng}});
             }, 500);
         }
 
-        // ฟังก์ชัน GPS
-        function watchLocation() {
-            document.getElementById('statusText').innerText = "📡 กำลังจับสัญญาณ GPS...";
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(updatePosition, showGpsError, {
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 0
+        function fetchHistory() {
+            const list = document.getElementById('history-list');
+            fetch(API_URL + "?action=getHistory&name=" + currentUser.name)
+            .then(res => res.json())
+            .then(history => {
+                list.innerHTML = ""; 
+                if(history.length === 0) { list.innerHTML = '<li class="history-item" style="justify-content: center;">ยังไม่มีประวัติ</li>'; return; }
+                const limitHistory = history.slice(0, 4);
+                limitHistory.forEach(item => {
+                    let timeShow = item.time.substring(0, 5); 
+                    let color = item.action.includes("เข้า") ? "#009245" : "#ED1C24";
+                    let li = document.createElement('li'); li.className = 'history-item';
+                    li.innerHTML = `<span>${item.date} ${timeShow}</span> <span style="font-weight:bold; color:${color}">${item.action}</span>`;
+                    list.appendChild(li);
                 });
-            } else {
-                showGpsError({ message: "Browser ไม่รองรับ GPS" });
-            }
+            }).catch(err => { list.innerHTML = '<li class="history-item" style="color:red;">โหลดประวัติไม่ได้</li>'; });
         }
 
-        function updatePosition(position) {
-            var lat = position.coords.latitude;
-            var lng = position.coords.longitude;
-            currentLocation.lat = lat;
-            currentLocation.lng = lng;
-
-            // คำนวณหาร้านใกล้สุด (จากตัวแปรที่ฝังไว้)
-            var nearest = null;
-            var minDist = 9999999; 
-            for(var i=0; i<shopLocations.length; i++) {
-                var d = getDistanceFromLatLonInKm(lat, lng, shopLocations[i].lat, shopLocations[i].lng);
-                if(d < minDist) { minDist = d; nearest = shopLocations[i]; }
+        function recordAction(actionType, note = "") {
+            if (!isLocationReady) { alert("ไม่อยู่ในพื้นที่ หรือ GPS ยังไม่พร้อม"); return; }
+            if (note === "") {
+                const modal = document.getElementById('customModal');
+                const loading = document.getElementById('modalLoading');
+                const success = document.getElementById('modalSuccess');
+                modal.classList.remove('hidden'); loading.classList.remove('hidden'); success.classList.add('hidden');
             }
 
-            const dot = document.getElementById('statusDot');
-            const locName = document.getElementById('locationName');
-            const distText = document.getElementById('distanceText');
-            const statusText = document.getElementById('statusText');
-            const btnIn = document.getElementById('btnIn');
-            const btnOut = document.getElementById('btnOut');
-            const ALLOWED_RADIUS = 0.5; // รัศมี 0.5 กม. = 500 เมตร
+            let statusToSend = pendingStatus; 
+            if (note === "") statusToSend = "ปกติ"; 
 
-            if (nearest) {
-                var distMeters = Math.round(minDist * 1000);
-                locName.innerText = "ใกล้: " + nearest.name;
-                distText.innerText = "ระยะห่าง: " + distMeters + " เมตร";
-                currentLocation.name = nearest.name;
+            var data = { 
+                name: currentUser.name, 
+                action: actionType, 
+                location: currentLocation.name, 
+                lat: currentLocation.lat, 
+                lng: currentLocation.lng,
+                status: statusToSend,
+                note: note
+            };
 
-                if (minDist <= ALLOWED_RADIUS) {
-                    dot.className = "status-dot active";
-                    statusText.innerText = "สถานะ: ✅ เช็คอินได้";
-                    statusText.className = "text-status text-green";
-                    btnIn.classList.add('ready');
-                    btnOut.classList.add('ready');
-                    isLocationReady = true;
+            fetch(API_URL, { method: "POST", body: JSON.stringify(data) })
+            .then(res => res.json())
+            .then(result => {
+                if (note === "") {
+                    // เปิดหน้า Success
+                    document.getElementById('modalLoading').classList.add('hidden');
+                    document.getElementById('modalSuccess').classList.remove('hidden');
+                    document.getElementById('modalAlertArea').innerHTML = ""; 
+                    if (currentUser.role === 'daily') checkTimeLogic(actionType);
+                    
+                    // ✅ อัปเดตประวัติทันที!
+                    fetchHistory();
                 } else {
-                    dot.className = "status-dot error";
-                    statusText.innerText = "สถานะ: ❌ ไกลเกินไป";
-                    statusText.className = "text-status text-red";
-                    btnIn.classList.remove('ready');
-                    btnOut.classList.remove('ready');
-                    isLocationReady = false;
+                    alert("บันทึกข้อมูลเพิ่มเติมเรียบร้อย!");
+                    closeModal(); // ปิด Modal หลังจากส่ง Note เสร็จ
+                }
+            })
+            .catch(err => { alert("เกิดข้อผิดพลาด"); closeModal(); });
+        }
+
+        // ✅ ฟังก์ชันปิด Modal (ไม่รีเฟรชหน้า)
+        function closeModal() {
+            const modal = document.getElementById('customModal');
+            modal.classList.add('hidden');
+        }
+
+        // ✅ ฟังก์ชันคำนวณ 2 กะ (รองรับข้ามคืน)
+        function checkTimeLogic(action) {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes();
+
+            // ⚠️ สูตรพิเศษ: ถ้าเป็นเวลาหลังเที่ยงคืน (เช่น ตี 1) ให้บวก 24 เข้าไป
+            // เพื่อให้ระบบมองเป็นชั่วโมงที่ 25 (จะได้คำนวณต่อจาก 17:00 ได้)
+            if (hours < 5) {
+                hours += 24;
+            }
+
+            const totalMinutes = (hours * 60) + minutes;
+            const container = document.getElementById('modalAlertArea');
+
+            // --- เดากะอัตโนมัติ ---
+            // ถ้าเวลา(ที่แปลงแล้ว) น้อยกว่า 15:00 (บ่าย 3) -> ให้เป็นกะเช้า
+            // ถ้ามากกว่านั้น -> ให้เป็นกะบ่าย
+            let targetStart, targetEnd;
+            if (hours < 15) {
+                targetStart = SHIFT_1_START; targetEnd = SHIFT_1_END; // กะ 1
+            } else {
+                targetStart = SHIFT_2_START; targetEnd = SHIFT_2_END; // กะ 2
+            }
+
+            // เช็คสาย (เข้างาน)
+            if (action.includes("เข้างาน")) {
+                const workStart = (targetStart * 60); 
+                const lateLimit = workStart + 10; // สายได้ 10 นาที
+                
+                if (totalMinutes > lateLimit) {
+                    const lateMin = totalMinutes - workStart;
+                    pendingStatus = `สาย ${lateMin} นาที`;
+                    container.innerHTML = `
+                        <div class="status-alert late">
+                            <b>🔴 คุณเข้างานสาย ${lateMin} นาที</b><br>
+                            มีสิทธิ์ถูกตัดเงินตามกฏบริษัท
+                        </div>
+                        <button class="modal-btn action-req" onclick="submitReason('${action}', 'สาย ${lateMin} นาที')">📝 รายงานเหตุผล</button>
+                    `;
+                }
+            }
+
+            // เช็ค OT (ออกงาน)
+            if (action.includes("ออกงาน")) {
+                const workEnd = (targetEnd * 60);
+                const otStart = workEnd + 15; // OT เริ่มหลังเลิก 15 นาที
+                
+                if (totalMinutes > otStart) {
+                    const otMin = totalMinutes - workEnd;
+                    pendingStatus = `OT ${otMin} นาที`;
+                    container.innerHTML = `
+                        <div class="status-alert ot">
+                            <b>🟢 คุณทำงานล่วงเวลา ${otMin} นาที</b><br>
+                            มีสิทธิ์เบิกค่าล่วงเวลา (OT)
+                        </div>
+                        <button class="modal-btn action-req" onclick="submitReason('${action}', 'ขอ OT ${otMin} นาที')">💰 แจ้งขอ OT</button>
+                    `;
                 }
             }
         }
-
-        function showGpsError(error) {
-            document.getElementById('statusText').innerText = "⚠️ จับพิกัดไม่ได้";
-            document.getElementById('statusText').className = "text-status text-red";
+       
+        function submitReason(action, statusMsg) {
+            let reason = prompt("กรุณาระบุเหตุผล:");
+            if (reason) {
+                pendingStatus = statusMsg;
+                recordAction(action, reason); 
+            }
         }
 
-        // ฟังก์ชันบันทึกเวลา
-        function recordAction(actionType) {
-            if (!isLocationReady) { alert("ไม่อยู่ในพื้นที่"); return; }
-            if(!confirm("ยืนยันการ " + actionType + " ?")) return;
-            
-            const btnIn = document.getElementById('btnIn');
-            const btnOut = document.getElementById('btnOut');
-            btnIn.classList.remove('ready');
-            btnOut.classList.remove('ready');
-            document.getElementById('statusText').innerText = "⏳ กำลังบันทึกข้อมูล...";
-
-            var data = {
-                name: currentUser.name,
-                action: actionType,
-                location: currentLocation.name,
-                lat: currentLocation.lat,
-                lng: currentLocation.lng
-            };
-
-            // ส่งข้อมูลกลับไป Google
-            fetch(API_URL, {
-                method: "POST",
-                body: JSON.stringify(data)
-            })
-            .then(res => res.json())
-            .then(result => {
-                alert("บันทึกสำเร็จเรียบร้อย! 🎉");
-                location.reload(); 
-            })
-            .catch(err => {
-                alert("ส่งคำสั่งแล้ว! (กรุณาเช็คประวัติอีกครั้ง)");
-                location.reload(); 
-            });
+        function watchLocation() {
+            if (navigator.geolocation) { navigator.geolocation.watchPosition(updatePosition, showGpsError, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }); } 
+            else { showGpsError({ message: "Browser ไม่รองรับ GPS" }); }
         }
+        function updatePosition(position) {
+            var lat = position.coords.latitude; var lng = position.coords.longitude;
+            currentLocation.lat = lat; currentLocation.lng = lng;
+            var nearest = null; var minDist = 9999999; 
+            for(var i=0; i<shopLocations.length; i++) {
+                var c = getDistanceFromLatLonInKm(lat, lng, shopLocations[i].lat, shopLocations[i].lng);
+                if(c < minDist) { minDist = c; nearest = shopLocations[i]; }
+            }
+            const dot = document.getElementById('statusDot'); const locName = document.getElementById('locationName');
+            const distText = document.getElementById('distanceText'); const statusText = document.getElementById('statusText');
+            const btnIn = document.getElementById('btnIn'); const btnOut = document.getElementById('btnOut'); const ALLOWED_RADIUS = 0.5;
 
-        function updateClock() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            document.getElementById('live-clock').textContent = timeStr;
+            if (nearest) {
+                var distMeters = Math.round(minDist * 1000);
+                locName.innerText = "ใกล้: " + nearest.name; distText.innerText = "ระยะห่าง: " + distMeters + " เมตร"; currentLocation.name = nearest.name;
+                if (minDist <= ALLOWED_RADIUS) {
+                    dot.className = "status-dot active"; statusText.innerText = "สถานะ: ✅ เช็คอินได้"; statusText.className = "text-status text-green";
+                    btnIn.classList.add('ready'); btnOut.classList.add('ready'); isLocationReady = true;
+                } else {
+                    dot.className = "status-dot error"; statusText.innerText = "สถานะ: ❌ ไกลเกินไป"; statusText.className = "text-status text-red";
+                    btnIn.classList.remove('ready'); btnOut.classList.remove('ready'); isLocationReady = false;
+                }
+            }
         }
-
-        function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-            var R = 6371; // Radius of the earth in km
-            var dLat = deg2rad(lat2 - lat1);
-            var dLon = deg2rad(lon2 - lon1);
-            var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            var d = R * c;
-            return d;
-        }
-
-        function deg2rad(deg) { 
-            return deg * (Math.PI/180); 
-        }
-    </script>
+        function showGpsError(error) { document.getElementById('statusText').innerText = "⚠️ จับพิกัดไม่ได้"; document.getElementById('statusText').className = "text-status text-red"; }
+        function updateClock() { const now = new Date(); document.getElementById('live-clock').textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+        function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) { var R = 6371; var dLat = deg2rad(lat2-lat1); var dLon = deg2rad(lon2-lon1); var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R * c; }
+        function deg2rad(deg) { return deg * (Math.PI/180); }
+   </script>
 </body>
 </html>
-

@@ -173,7 +173,7 @@
             });
         });
 
-        // ฟังก์ชัน Login (ยังต้องถาม Google อยู่)
+        // ฟังก์ชัน Login
         function handleLogin() {
             let pin = '';
             pinInputs.forEach(input => pin += input.value);
@@ -205,7 +205,6 @@
                 }
             })
             .catch(err => {
-                // กรณีฉุกเฉิน: ถ้า Login ไม่ได้จริงๆ ให้ลองเช็ค URL
                 btn.disabled = false;
                 btn.innerText = "ลองอีกครั้ง";
                 status.innerText = "เชื่อมต่อระบบไม่ได้";
@@ -222,7 +221,7 @@
                 loginSec.classList.add('hidden');
                 document.getElementById('dashboard-section').classList.remove('hidden');
                 
-                // พอเข้าหน้า Dashboard ให้คำนวณระยะทันที
+                // พอเข้าหน้า Dashboard ให้คำนวณระยะทันที ถ้ามีพิกัดแล้ว
                 if(currentLocation.lat !== 0) {
                      updatePosition({coords: {latitude: currentLocation.lat, longitude: currentLocation.lng}});
                 }
@@ -263,7 +262,7 @@
             const statusText = document.getElementById('statusText');
             const btnIn = document.getElementById('btnIn');
             const btnOut = document.getElementById('btnOut');
-            const ALLOWED_RADIUS = 0.5; // รัศมี 500 เมตร
+            const ALLOWED_RADIUS = 0.5; // รัศมี 0.5 กม. = 500 เมตร
 
             if (nearest) {
                 var distMeters = Math.round(minDist * 1000);
@@ -313,7 +312,7 @@
                 lng: currentLocation.lng
             };
 
-            // ส่งข้อมูลกลับไป Google (อันนี้ยังต้องใช้ fetch)
+            // ส่งข้อมูลกลับไป Google
             fetch(API_URL, {
                 method: "POST",
                 body: JSON.stringify(data)
@@ -324,8 +323,6 @@
                 location.reload(); 
             })
             .catch(err => {
-                // บางที Google ตอบกลับมาแต่ Browser บล็อก CORS 
-                // แต่ข้อมูลอาจจะลง Sheet ไปแล้ว ให้แจ้งเตือนแบบกลางๆ
                 alert("ส่งคำสั่งแล้ว! (กรุณาเช็คประวัติอีกครั้ง)");
                 location.reload(); 
             });
@@ -336,14 +333,22 @@
             const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             document.getElementById('live-clock').textContent = timeStr;
         }
-        function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
-            var R = 6371; var dLat = deg2rad(lat2-lat1); var dLon = deg2rad(lon2-lon1); 
-            var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
-            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R * d;
+
+        function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+            var R = 6371; // Radius of the earth in km
+            var dLat = deg2rad(lat2 - lat1);
+            var dLon = deg2rad(lon2 - lon1);
+            var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            var d = R * c;
+            return d;
         }
-        function deg2rad(deg) { return deg * (Math.PI/180); }
+
+        function deg2rad(deg) { 
+            return deg * (Math.PI/180); 
+        }
     </script>
 </body>
-
 </html>
-

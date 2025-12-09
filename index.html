@@ -6,20 +6,19 @@
     <title>Easy Time Attendance</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* CSS เดิมทั้งหมด */
+        /* CSS ทั้งหมด */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: #FFF9F0; color: #333; min-height: 100vh; overflow-x: hidden; }
         .hidden { display: none !important; }
         .flex-center { display: flex; justify-content: center; align-items: center; }
         .flex-col { display: flex; flex-direction: column; }
-        
+
         #login-section { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ED1C24; z-index: 100; padding: 2rem; text-align: center; transition: opacity 0.5s; }
         .login-brand { margin-top: 15vh; margin-bottom: 2rem; }
         .brand-text-main { font-size: 3rem; font-weight: 800; color: #FFDE17; line-height: 1; }
         .login-instruction { color: white; font-size: 1.5rem; font-weight: 600; margin-bottom: 2rem; line-height: 1.4; }
         .pin-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 3rem; }
         .pin-input { width: 60px; height: 60px; background-color: #FFF9F0; border: none; border-radius: 12px; text-align: center; font-size: 2rem; font-weight: bold; color: #333; outline: none; }
-        .pin-input:focus { box-shadow: 0 0 0 4px rgba(255, 222, 23, 0.5); }
         .btn-login { background-color: #FFDE17; color: #000; font-size: 1.5rem; font-weight: 800; padding: 12px 40px; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; }
         .btn-login:disabled { background-color: #ccc; cursor: not-allowed; }
 
@@ -47,7 +46,6 @@
         .action-row { display: flex; gap: 15px; margin-bottom: 25px; }
         .action-btn { flex: 1; border: none; border-radius: 20px; padding: 25px 10px; color: white; cursor: pointer; text-align: center; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.15); opacity: 0.5; pointer-events: none; }
         .action-btn.ready { opacity: 1; pointer-events: auto; }
-        .action-btn:active { transform: scale(0.96); }
         .btn-checkin { background-color: #009245; }
         .btn-checkout { background-color: #ED1C24; }
         .action-btn small { display: block; font-size: 1rem; opacity: 0.9; }
@@ -62,21 +60,24 @@
         .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 1rem; color: #555; }
         .history-item:last-child { border-bottom: none; }
 
-        /* Modal CSS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-box { background: white; width: 85%; max-width: 350px; border-radius: 20px; padding: 30px 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        
         .modal-btn { background: #ED1C24; color: white; border: none; padding: 12px 25px; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 5px; }
+        .modal-btn.secondary { background: #eee; color: #333; }
         .modal-btn.action-req { background: #ffc107; color: #000; margin-bottom: 10px; }
+        .modal-btn-group { display: flex; gap: 10px; margin-top: 15px; }
         
-        .status-alert { background: #fff3cd; color: #856404; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ffeeba; font-size: 0.9rem; text-align: left; }
+        .status-alert { background: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ffeeba; font-size: 0.95rem; text-align: left; line-height: 1.6; }
         .status-alert.late { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
         .status-alert.ot { background: #d4edda; color: #155724; border-color: #c3e6cb; }
 
+        .modal-input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 12px; margin-bottom: 5px; font-size: 1rem; resize: none; font-family: 'Kanit', sans-serif; }
+        .modal-input:focus { outline: none; border-color: #FFDE17; }
+
         .checkmark-circle { width: 80px; height: 80px; position: relative; display: inline-block; vertical-align: top; margin-bottom: 10px; }
         .checkmark-circle .background { width: 80px; height: 80px; border-radius: 50%; background: #4CAF50; position: absolute; }
-        .checkmark-circle .draw:after { content: ''; position: absolute; left: 22px; top: 40px; width: 35px; height: 15px; border-bottom: 5px solid white; border-left: 5px solid white; transform: scaleX(-1) rotate(135deg); transform-origin: left top; animation: checkmark 0.6s ease forwards; }
-        @keyframes checkmark { 0% { height: 0; width: 0; opacity: 0; } 50% { opacity: 1; height: 0; width: 0; } 100% { height: 15px; width: 35px; opacity: 1; } }
+        .checkmark-circle .draw:after { content: ''; position: absolute; left: 32px; top: 18px; width: 16px; height: 32px; border-bottom: 5px solid white; border-right: 5px solid white; transform: rotate(45deg); transform-origin: center; animation: checkmark 0.6s ease forwards; }
+        @keyframes checkmark { 0% { height: 0; width: 0; opacity: 0; } 100% { height: 32px; width: 16px; opacity: 1; } }
         .modal-spinner { border: 5px solid #f3f3f3; border-top: 5px solid #ED1C24; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
     </style>
 </head>
@@ -100,7 +101,7 @@
             <div class="header-left">
                 <h1>EASY</h1>
                 <h2 id="userNameDisplay">สวัสดี...</h2>
-                <small id="userBranchDisplay" style="color:#FFDE17;">ข้อมูลสาขาพร้อมใช้งาน</small>
+                <small id="userBranchDisplay" style="color:#FFDE17;">กำลังโหลดข้อมูลสาขา...</small>
             </div>
             <div class="menu-icon" onclick="location.reload()">↻</div>
         </div>
@@ -145,11 +146,13 @@
 
     <div id="customModal" class="modal-overlay hidden">
         <div class="modal-box">
+            
             <div id="modalLoading">
                 <div class="modal-spinner"></div>
                 <div class="modal-title">กำลังบันทึก...</div>
                 <div class="modal-desc">กรุณารอสักครู่ ระบบกำลังส่งข้อมูล</div>
             </div>
+
             <div id="modalSuccess" class="hidden">
                 <div class="checkmark-circle">
                     <div class="background"></div>
@@ -162,34 +165,50 @@
 
                 <button class="modal-btn" onclick="closeModal()">ตกลง</button>
             </div>
+
+            <div id="modalReason" class="hidden">
+                <div class="modal-title">ระบุเหตุผล</div>
+                <div class="modal-desc" style="margin-bottom: 15px;">กรุณาแจ้งเหตุผลเพื่อประกอบการพิจารณา</div>
+                <textarea id="reasonTextarea" class="modal-input" placeholder="พิมพ์เหตุผลของคุณที่นี่..." rows="4"></textarea>
+                <div class="modal-btn-group">
+                    <button class="modal-btn secondary" onclick="cancelReason()">ยกเลิก</button>
+                    <button class="modal-btn" onclick="submitCustomReason()">ยืนยัน</button>
+                </div>
+            </div>
+
+            <div id="modalReasonSubmitted" class="hidden">
+                <div class="checkmark-circle">
+                    <div class="background"></div>
+                    <div class="draw"></div>
+                </div>
+                <div class="modal-title" style="color:#4CAF50;">บันทึกเหตุผลสำเร็จ!</div>
+                <div class="modal-desc">ข้อมูลของคุณถูกส่งเรียบร้อยแล้ว</div>
+                <button class="modal-btn" onclick="closeModal()">ตกลง</button>
+            </div>
+
         </div>
     </div>
 
    <script>
-        // 🔴🔴 ใส่ URL เดิมของคุณวิวตรงนี้ 🔴🔴
-        const API_URL = "https://script.google.com/macros/s/AKfycbzbVQiuK7-NLYL-W76qMuKl4p1OvigkFPw7oOiYMgxmnK3WUPxQqUJluq-PusnbAiAk/exec";
+        // 🔴🔴 ใส่ URL ใหม่ตรงนี้ครับ 🔴🔴
+        const API_URL = "https://script.google.com/macros/s/AKfycbwFEyvG9DIVI27ODkvKXpUBdG-GF66eomZ6ZRtlXdULpmMGu7YSDUloU0YKx_7C4VPK/exec";
 
-        // ⚙️ ตั้งค่าเวลากะงาน (ใช้เลข 25 แทนตี 1)
+        // ตั้งค่ากะ
         const SHIFT_1_START = 9;  const SHIFT_1_END = 17;
-        const SHIFT_2_START = 17; const SHIFT_2_END = 25;
+        const SHIFT_2_START = 17; const SHIFT_2_END = 25; 
 
         var currentUser = {};
         var currentLocation = { lat: 0, lng: 0, name: "Unknown" };
         var isLocationReady = false;
         var pendingStatus = "ปกติ";
-
-        // พิกัดร้าน
-        var shopLocations = [
-            {"name":"อมตะนคร", "lat":13.4429015, "lng":101.0299502},
-            {"name":"พระยาสัจจา", "lat":13.3478668, "lng":100.971527},
-            {"name":"บางแสน", "lat":13.2806205, "lng":100.9330387},
-            {"name":"อ่าวอุดม", "lat":13.1144392, "lng":100.9249934},
-            {"name":"หนองตำลึง", "lat":13.41045, "lng":101.055621},
-            {"name":"วังหิน", "lat":13.824285, "lng":100.590109}
-        ];
+        var shopLocations = []; 
+        let currentActionForReason = "";
+        let currentStatusForReason = "";
 
         window.onload = function() {
-            updateClock(); setInterval(updateClock, 1000); watchLocation();
+            updateClock(); setInterval(updateClock, 1000); 
+            fetchLocations(); 
+            watchLocation();
             document.getElementById('pin-1').focus();
         };
 
@@ -208,6 +227,23 @@
                 }
             });
         });
+
+        function fetchLocations() {
+            document.getElementById('userBranchDisplay').innerText = "กำลังโหลดข้อมูลสาขา...";
+            fetch(API_URL + "?action=getLocations")
+            .then(res => res.json())
+            .then(locs => {
+                shopLocations = locs;
+                document.getElementById('userBranchDisplay').innerText = "ข้อมูลสาขาพร้อมใช้งาน";
+                if(currentLocation.lat !== 0) {
+                     updatePosition({coords: {latitude: currentLocation.lat, longitude: currentLocation.lng}});
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('userBranchDisplay').innerText = "⚠️ เชื่อมต่อข้อมูลสาขาไม่ได้";
+            });
+        }
 
         function handleLogin() {
             let pin = '';
@@ -251,11 +287,21 @@
                 list.innerHTML = ""; 
                 if(history.length === 0) { list.innerHTML = '<li class="history-item" style="justify-content: center;">ยังไม่มีประวัติ</li>'; return; }
                 const limitHistory = history.slice(0, 4);
+                
                 limitHistory.forEach(item => {
-                    let timeShow = item.time.substring(0, 5); 
+                    let displayDate = item.date;
+                    let displayTime = item.time;
+                    if (String(item.date).indexOf('T') > -1) {
+                        let d = new Date(item.date);
+                        displayDate = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                    }
+                    if (String(item.time).indexOf('T') > -1) {
+                        let t = new Date(item.time);
+                        displayTime = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}:${String(t.getSeconds()).padStart(2, '0')}`;
+                    }
                     let color = item.action.includes("เข้า") ? "#009245" : "#ED1C24";
                     let li = document.createElement('li'); li.className = 'history-item';
-                    li.innerHTML = `<span>${item.date} ${timeShow}</span> <span style="font-weight:bold; color:${color}">${item.action}</span>`;
+                    li.innerHTML = `<span>${displayDate} ${displayTime}</span> <span style="font-weight:bold; color:${color}">${item.action}</span>`;
                     list.appendChild(li);
                 });
             }).catch(err => { list.innerHTML = '<li class="history-item" style="color:red;">โหลดประวัติไม่ได้</li>'; });
@@ -263,11 +309,15 @@
 
         function recordAction(actionType, note = "") {
             if (!isLocationReady) { alert("ไม่อยู่ในพื้นที่ หรือ GPS ยังไม่พร้อม"); return; }
-            if (note === "") {
-                const modal = document.getElementById('customModal');
-                const loading = document.getElementById('modalLoading');
-                const success = document.getElementById('modalSuccess');
-                modal.classList.remove('hidden'); loading.classList.remove('hidden'); success.classList.add('hidden');
+            
+            ['modalSuccess', 'modalReason', 'modalReasonSubmitted'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('modalLoading').classList.remove('hidden');
+            document.getElementById('customModal').classList.remove('hidden');
+            
+            if (note !== "") {
+                 document.getElementById('modalLoading').querySelector('.modal-title').innerText = "กำลังส่งเหตุผล...";
+            } else {
+                 document.getElementById('modalLoading').querySelector('.modal-title').innerText = "กำลังบันทึก...";
             }
 
             let statusToSend = pendingStatus; 
@@ -286,97 +336,95 @@
             fetch(API_URL, { method: "POST", body: JSON.stringify(data) })
             .then(res => res.json())
             .then(result => {
+                document.getElementById('modalLoading').classList.add('hidden');
                 if (note === "") {
-                    // เปิดหน้า Success
-                    document.getElementById('modalLoading').classList.add('hidden');
                     document.getElementById('modalSuccess').classList.remove('hidden');
                     document.getElementById('modalAlertArea').innerHTML = ""; 
                     if (currentUser.role === 'daily') checkTimeLogic(actionType);
-                    
-                    // ✅ อัปเดตประวัติทันที!
                     fetchHistory();
                 } else {
-                    alert("บันทึกข้อมูลเพิ่มเติมเรียบร้อย!");
-                    closeModal(); // ปิด Modal หลังจากส่ง Note เสร็จ
+                    document.getElementById('modalReasonSubmitted').classList.remove('hidden');
                 }
             })
             .catch(err => { alert("เกิดข้อผิดพลาด"); closeModal(); });
         }
 
-        // ✅ ฟังก์ชันปิด Modal (ไม่รีเฟรชหน้า)
         function closeModal() {
-            const modal = document.getElementById('customModal');
-            modal.classList.add('hidden');
+            document.getElementById('customModal').classList.add('hidden');
         }
 
-        // ✅ ฟังก์ชันคำนวณ 2 กะ (รองรับข้ามคืน)
         function checkTimeLogic(action) {
             const now = new Date();
             let hours = now.getHours();
             const minutes = now.getMinutes();
-
-            // ⚠️ สูตรพิเศษ: ถ้าเป็นเวลาหลังเที่ยงคืน (เช่น ตี 1) ให้บวก 24 เข้าไป
-            // เพื่อให้ระบบมองเป็นชั่วโมงที่ 25 (จะได้คำนวณต่อจาก 17:00 ได้)
-            if (hours < 5) {
-                hours += 24;
-            }
-
+            if (hours < 5) hours += 24;
             const totalMinutes = (hours * 60) + minutes;
             const container = document.getElementById('modalAlertArea');
 
-            // --- เดากะอัตโนมัติ ---
-            // ถ้าเวลา(ที่แปลงแล้ว) น้อยกว่า 15:00 (บ่าย 3) -> ให้เป็นกะเช้า
-            // ถ้ามากกว่านั้น -> ให้เป็นกะบ่าย
             let targetStart, targetEnd;
-            if (hours < 15) {
-                targetStart = SHIFT_1_START; targetEnd = SHIFT_1_END; // กะ 1
-            } else {
-                targetStart = SHIFT_2_START; targetEnd = SHIFT_2_END; // กะ 2
-            }
+            if (currentUser.shift == 1) { targetStart = SHIFT_1_START; targetEnd = SHIFT_1_END; } 
+            else if (currentUser.shift == 2) { targetStart = SHIFT_2_START; targetEnd = SHIFT_2_END; }
+            else { return; }
 
-            // เช็คสาย (เข้างาน)
+            const formatTime = (h) => `${String(h % 24).padStart(2,'0')}:00`;
+            const actualTimeStr = `${String(now.getHours()).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`;
+
             if (action.includes("เข้างาน")) {
                 const workStart = (targetStart * 60); 
-                const lateLimit = workStart + 10; // สายได้ 10 นาที
-                
+                const lateLimit = workStart + 10; 
                 if (totalMinutes > lateLimit) {
                     const lateMin = totalMinutes - workStart;
                     pendingStatus = `สาย ${lateMin} นาที`;
                     container.innerHTML = `
                         <div class="status-alert late">
                             <b>🔴 คุณเข้างานสาย ${lateMin} นาที</b><br>
-                            มีสิทธิ์ถูกตัดเงินตามกฏบริษัท
+                            เวลาเข้างาน: ${formatTime(targetStart)} น.<br>
+                            เวลาที่ลงเวลา: ${actualTimeStr} น.<br>
+                            <small>มีสิทธิ์ถูกตัดเงิน โปรดรายงานเหตุผลเพื่อการพิจารณา</small>
                         </div>
-                        <button class="modal-btn action-req" onclick="submitReason('${action}', 'สาย ${lateMin} นาที')">📝 รายงานเหตุผล</button>
+                        <button class="modal-btn action-req" onclick="showReasonInput('${action}', 'สาย ${lateMin} นาที')">📝 รายงานเหตุผล</button>
                     `;
                 }
             }
 
-            // เช็ค OT (ออกงาน)
             if (action.includes("ออกงาน")) {
                 const workEnd = (targetEnd * 60);
-                const otStart = workEnd + 15; // OT เริ่มหลังเลิก 15 นาที
-                
+                const otStart = workEnd + 15; 
                 if (totalMinutes > otStart) {
                     const otMin = totalMinutes - workEnd;
                     pendingStatus = `OT ${otMin} นาที`;
                     container.innerHTML = `
                         <div class="status-alert ot">
                             <b>🟢 คุณทำงานล่วงเวลา ${otMin} นาที</b><br>
-                            มีสิทธิ์เบิกค่าล่วงเวลา (OT)
+                            เวลาเลิกงาน: ${formatTime(targetEnd)} น.<br>
+                            เวลาที่ลงเวลา: ${actualTimeStr} น.<br>
+                            <small>มีสิทธิ์เบิกค่าล่วงเวลา โปรดแจ้งความประสงค์</small>
                         </div>
-                        <button class="modal-btn action-req" onclick="submitReason('${action}', 'ขอ OT ${otMin} นาที')">💰 แจ้งขอ OT</button>
+                        <button class="modal-btn action-req" onclick="showReasonInput('${action}', 'ขอ OT ${otMin} นาที')">💰 แจ้งขอ OT</button>
                     `;
                 }
             }
         }
-       
-        function submitReason(action, statusMsg) {
-            let reason = prompt("กรุณาระบุเหตุผล:");
-            if (reason) {
-                pendingStatus = statusMsg;
-                recordAction(action, reason); 
-            }
+
+        function showReasonInput(action, statusMsg) {
+            currentActionForReason = action;
+            currentStatusForReason = statusMsg;
+            document.getElementById('modalSuccess').classList.add('hidden');
+            document.getElementById('modalReason').classList.remove('hidden');
+            document.getElementById('reasonTextarea').value = ""; 
+            document.getElementById('reasonTextarea').focus();
+        }
+
+        function cancelReason() {
+            document.getElementById('modalReason').classList.add('hidden');
+            document.getElementById('modalSuccess').classList.remove('hidden');
+        }
+
+        function submitCustomReason() {
+            const reason = document.getElementById('reasonTextarea').value;
+            if (reason.trim() === "") { alert("กรุณากรอกเหตุผล"); return; }
+            pendingStatus = currentStatusForReason;
+            recordAction(currentActionForReason, reason); 
         }
 
         function watchLocation() {

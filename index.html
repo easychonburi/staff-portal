@@ -23,7 +23,7 @@
         .btn-login:disabled { background-color: #ccc; cursor: not-allowed; }
 
         #dashboard-section { padding-bottom: 40px; }
-        .dashboard-header { background-color: #ED1C24; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; padding: 20px 20px 30px 20px; color: white; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .dashboard-header { background-color: #ED1C24; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; padding: 20px 20px 30px 20px; color: white; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; z-index: 200; }
         .header-left h1 { color: #FFDE17; font-size: 1.8rem; font-weight: 800; line-height: 1; margin-bottom: 5px; }
         .header-left h2 { font-size: 1.4rem; font-weight: 500; }
         .container { padding: 0 20px; max-width: 500px; margin: 0 auto; }
@@ -79,6 +79,85 @@
         .checkmark-circle .draw:after { content: ''; position: absolute; left: 32px; top: 18px; width: 16px; height: 32px; border-bottom: 5px solid white; border-right: 5px solid white; transform: rotate(45deg); transform-origin: center; animation: checkmark 0.6s ease forwards; }
         @keyframes checkmark { 0% { height: 0; width: 0; opacity: 0; } 100% { height: 32px; width: 16px; opacity: 1; } }
         .modal-spinner { border: 5px solid #f3f3f3; border-top: 5px solid #ED1C24; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
+
+        /* ปุ่มสามขีดมุมขวาบน */
+        .menu-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        .menu-icon span {
+            width: 20px;
+            height: 3px;
+            border-radius: 999px;
+            background: #ffffff;
+        }
+
+        /* เมนูลอยเพิ่มเติม */
+        #menuOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.25);
+            z-index: 950;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-start;
+            padding: 70px 16px 16px 16px;
+        }
+        .menu-box {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 14px 14px 10px 14px;
+            width: 230px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        }
+        .menu-title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        .menu-sub {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        .menu-item-btn {
+            width: 100%;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            text-align: left;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .menu-item-btn span.icon {
+            font-size: 1.2rem;
+        }
+        .menu-item-btn.primary {
+            background: #FFDE17;
+            color: #000;
+            font-weight: 600;
+        }
+        .menu-item-btn.secondary {
+            background: #f3f3f3;
+            color: #333;
+        }
+        .menu-item-btn.danger {
+            background: #ffe2e2;
+            color: #b30000;
+        }
     </style>
 </head>
 <body>
@@ -103,7 +182,12 @@
                 <h2 id="userNameDisplay">สวัสดี...</h2>
                 <small id="userBranchDisplay" style="color:#FFDE17;">กำลังโหลดข้อมูลสาขา...</small>
             </div>
-            <div class="menu-icon" onclick="location.reload()">↻</div>
+            <!-- ปุ่มสามขีด เรียกเมนูเพิ่มเติม -->
+            <div class="menu-icon" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
 
         <div class="container">
@@ -143,6 +227,26 @@
             </div>
         </div>
     </section>
+
+    <!-- เมนูเพิ่มเติม (ระบบเช็คสต๊อก / รีเฟรชหน้า) -->
+    <div id="menuOverlay" class="hidden" onclick="closeMenu()">
+        <div class="menu-box" onclick="event.stopPropagation()">
+            <div class="menu-title">เมนูเพิ่มเติม</div>
+            <div class="menu-sub">เลือกเมนูที่ต้องการใช้งาน</div>
+            <button class="menu-item-btn primary" onclick="openStockSystem()">
+                <span class="icon">📦</span>
+                <span>ระบบเช็คสต๊อก</span>
+            </button>
+            <button class="menu-item-btn secondary" onclick="refreshPage()">
+                <span class="icon">🔄</span>
+                <span>รีเฟรชหน้า</span>
+            </button>
+            <button class="menu-item-btn danger" onclick="closeMenu()">
+                <span class="icon">✕</span>
+                <span>ปิดเมนู</span>
+            </button>
+        </div>
+    </div>
 
     <div id="customModal" class="modal-overlay hidden">
         <div class="modal-box">
@@ -190,7 +294,10 @@
     </div>
 
    <script>
-        // 🔴🔴 ใส่ URL ใหม่ตรงนี้ครับ 🔴🔴
+        // 👉 URL ระบบเช็คสต๊อก แก้ตรงนี้ได้ตามที่วิวใช้งานจริง
+        const STOCK_URL = "https://easy-stock-system.netlify.app";
+
+        // 🔴🔴 ใส่ URL Google Apps Script ของระบบลงเวลา 🔴🔴
         const API_URL = "https://script.google.com/macros/s/AKfycbw6OXAGbcsUEvGlBqVlwoUBr6Gdi1AkmxH5ijiSppyiNNvzlbh5sEDdX0MI5SR0sdXR/exec";
 
         // ตั้งค่ากะ
@@ -227,6 +334,23 @@
                 }
             });
         });
+
+        // ฟังก์ชันเมนูสามขีด
+        function toggleMenu() {
+            const el = document.getElementById('menuOverlay');
+            el.classList.toggle('hidden');
+        }
+        function closeMenu() {
+            document.getElementById('menuOverlay').classList.add('hidden');
+        }
+        function openStockSystem() {
+            closeMenu();
+            window.open(STOCK_URL, '_blank');
+        }
+        function refreshPage() {
+            closeMenu();
+            location.reload();
+        }
 
         function fetchLocations() {
             document.getElementById('userBranchDisplay').innerText = "กำลังโหลดข้อมูลสาขา...";
@@ -462,4 +586,3 @@
    </script>
 </body>
 </html>
-

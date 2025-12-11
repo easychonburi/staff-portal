@@ -72,7 +72,7 @@
         .status-alert.late { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
         .status-alert.ot { background: #d4edda; color: #155724; border-color: #c3e6cb; }
 
-        /* ช่องกรอกเหตุผล (ธีมขาวตามสั่ง) */
+        /* ช่องกรอกเหตุผล */
         .modal-input { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 5px; font-size: 1rem; resize: none; font-family: 'Kanit', sans-serif; background: #fafafa; }
         .modal-input:focus { outline: none; border-color: #ED1C24; background: #fff; }
 
@@ -80,7 +80,7 @@
         .modal-spinner { border: 5px solid #f3f3f3; border-top: 5px solid #ED1C24; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* ไอคอนติ๊กถูก (ตั้งตรง) */
+        /* ไอคอนติ๊กถูก */
         .checkmark-circle { width: 80px; height: 80px; position: relative; display: inline-block; vertical-align: top; margin-bottom: 10px; }
         .checkmark-circle .background { width: 80px; height: 80px; border-radius: 50%; background: #4CAF50; position: absolute; }
         .checkmark-circle .checkmark { border-radius: 5px; }
@@ -214,13 +214,9 @@
     </div>
 
    <script>
-        // 👉 URL ระบบเช็คสต๊อก
         const STOCK_URL = "https://easy-stock-system.netlify.app";
-
-        // 🔴🔴 URL Google Apps Script (ตัวล่าสุดที่คุณวิวส่งมา) 🔴🔴
         const API_URL = "https://script.google.com/macros/s/AKfycbw6OXAGbcsUEvGlBqVlwoUBr6Gdi1AkmxH5ijiSppyiNNvzlbh5sEDdX0MI5SR0sdXR/exec";
 
-        // ตั้งค่ากะ
         const SHIFT_1_START = 9;  const SHIFT_1_END = 17;
         const SHIFT_2_START = 17; const SHIFT_2_END = 25; 
 
@@ -229,7 +225,6 @@
         var isLocationReady = false;
         var shopLocations = []; 
         
-        // ตัวแปรพักข้อมูลชั่วคราว (รอการยืนยัน)
         var tempAction = "";
         var tempStatus = "ปกติ";
 
@@ -256,7 +251,6 @@
             });
         });
 
-        // ฟังก์ชันเมนู
         function toggleMenu() { document.getElementById('menuOverlay').classList.toggle('hidden'); }
         function closeMenu() { document.getElementById('menuOverlay').classList.add('hidden'); }
         function openStockSystem() { closeMenu(); window.open(STOCK_URL, '_blank'); }
@@ -333,29 +327,24 @@
             }).catch(err => { list.innerHTML = '<li class="history-item" style="color:red;">โหลดประวัติไม่ได้</li>'; });
         }
 
-        // ✅ 1. เช็คสถานะก่อน (ยังไม่ส่งข้อมูล)
         function checkBeforeRecord(actionType) {
             if (!isLocationReady) { alert("ไม่อยู่ในพื้นที่ หรือ GPS ยังไม่พร้อม"); return; }
             
             tempAction = actionType;
-            tempStatus = "ปกติ"; // ค่าเริ่มต้น
+            tempStatus = "ปกติ";
 
-            // ถ้าเป็นพนักงานรายวัน (daily) ให้เช็คเวลา
             if (currentUser.role === 'daily') {
                 const checkResult = calculateTimeStatus(actionType);
                 if (checkResult.isAlert) {
-                    // ถ้ามีประเด็น (สาย/OT) -> เปิดหน้าต่างกรอกเหตุผล
                     tempStatus = checkResult.statusShort; 
                     openReasonModal(checkResult.htmlMessage);
-                    return; // 🛑 จบการทำงานตรงนี้ รอผู้ใช้กดยืนยันใน Modal
+                    return;
                 }
             }
 
-            // ถ้าปกติ (หรือไม่ใช่รายวัน) -> ส่งข้อมูลเลย
             sendDataToServer("");
         }
 
-        // ✅ 2. ฟังก์ชันคำนวณเวลา (คืนค่าสถานะและข้อความ)
         function calculateTimeStatus(action) {
             const now = new Date();
             let hours = now.getHours();
@@ -371,7 +360,6 @@
             const formatTime = (h) => `${String(h % 24).padStart(2,'0')}:00`;
             const actualTimeStr = `${String(now.getHours()).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`;
 
-            // เช็คสาย
             if (action.includes("เข้างาน")) {
                 const workStart = (targetStart * 60); 
                 const lateLimit = workStart + 10; 
@@ -391,7 +379,6 @@
                 }
             }
 
-            // เช็ค OT
             if (action.includes("ออกงาน")) {
                 const workEnd = (targetEnd * 60);
                 const otStart = workEnd + 15; 
@@ -414,13 +401,11 @@
             return { isAlert: false };
         }
 
-        // ✅ 3. เปิดหน้าต่างกรอกเหตุผล
         function openReasonModal(htmlMsg) {
             const modal = document.getElementById('customModal');
             const form = document.getElementById('modalReasonForm');
             const alertBox = document.getElementById('reasonAlertMessage');
             
-            // ซ่อนหน้าอื่น เปิดหน้า Form
             ['modalLoading', 'modalSuccess'].forEach(id => document.getElementById(id).classList.add('hidden'));
             form.classList.remove('hidden');
             modal.classList.remove('hidden');
@@ -430,18 +415,14 @@
             document.getElementById('reasonTextarea').focus();
         }
 
-        // ✅ 4. ยืนยันการบันทึก (พร้อมเหตุผล)
         function confirmRecordWithReason() {
             const reason = document.getElementById('reasonTextarea').value;
             if (reason.trim() === "") { alert("กรุณากรอกเหตุผล"); return; }
-            
-            // ส่งข้อมูลจริง (Action + Status + Reason)
             sendDataToServer(reason);
         }
 
-        // ✅ 5. ฟังก์ชันส่งข้อมูล (รวมศูนย์ที่เดียว)
+        // เวอร์ชันแก้แล้ว: ไม่ parse JSON และไม่เรียก modalAlertArea
         function sendDataToServer(note) {
-            // เปิดหน้า Loading
             document.getElementById('customModal').classList.remove('hidden');
             document.getElementById('modalReasonForm').classList.add('hidden');
             document.getElementById('modalLoading').classList.remove('hidden');
@@ -456,26 +437,24 @@
                 note: note          
             };
 
-            fetch(API_URL, { method: "POST", body: JSON.stringify(data) })
-            .then(res => res.json())
-            .then(result => {
-                // เปลี่ยนไปหน้า Success
+            fetch(API_URL, { 
+                method: "POST", 
+                body: JSON.stringify(data)
+            })
+            .then(() => {
                 document.getElementById('modalLoading').classList.add('hidden');
                 document.getElementById('modalSuccess').classList.remove('hidden');
                 
-                // อัปเดตข้อความสำเร็จ
-                if (note !== "") {
+                if (note && note.trim() !== "") {
                     document.getElementById('successMsg').innerText = "บันทึกเหตุผลเรียบร้อย";
                 } else {
                     document.getElementById('successMsg').innerText = "ลงเวลาเรียบร้อยแล้ว";
                 }
                 
-                // ล้าง Alert area ไม่ให้โชว์ซ้ำในหน้า Success
-                document.getElementById('modalAlertArea').innerHTML = ""; 
-                
-                fetchHistory(); // อัปเดตตาราง
+                setTimeout(fetchHistory, 1500);
             })
             .catch(err => { 
+                console.error(err);
                 alert("เกิดข้อผิดพลาดในการส่งข้อมูล"); 
                 closeModal(); 
             });

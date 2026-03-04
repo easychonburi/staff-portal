@@ -626,9 +626,26 @@
     }
 
     function deg2rad(deg) { return deg * (Math.PI / 180); }
+
+    // ฟังก์ชันโทรโข่ง เอาไว้แอบส่งข้อมูลไปหลังบ้านแบบเงียบๆ
+    function notifyTaskToServer(actionText, locationText, noteText) {
+        const API_URL = "https://script.google.com/macros/s/AKfycbyCFIIEy5lGp9PYZAUaF7RuENpG5bpqolq5XmkmEktOs9P7DKn4_yRxd4lx6NJB0aac/exec";
+        const payload = {
+            name: state.user,
+            action: actionText,     // เช่น "จัดของขึ้นรถ"
+            location: locationText, // เช่น "สาขาบางแสน"
+            status: "ปกติ",
+            note: noteText          // เช่น "⚠️ ขาด: อกไก่ 1 ถุง"
+        };
+        fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
+            .then(res => console.log("ส่งแจ้งเตือนสำเร็จ"))
+            .catch(err => console.error("ส่งแจ้งเตือนพลาด", err));
+    }
+    
   </script>
 </body>
 </html>
+
 
 
 

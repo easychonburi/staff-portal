@@ -257,7 +257,7 @@
         });
     }
 
-    function handleLogin() {
+   function handleLogin() {
       let pin = '';
       pinInputs.forEach(input => pin += input.value);
 
@@ -278,8 +278,21 @@
           if (result && result.success) {
             currentUser = result;
             if (!currentUser.role) currentUser.role = 'daily';
+
+            // 🚨 [ส่วนที่เพิ่มใหม่] ดักจับคนขับรถตรงนี้เลย! 🚨
+            // ถ้าตำแหน่งมีคำว่า "ขับรถ" หรือชื่อมีคำว่า "ต้น"
+            if (String(currentUser.role).includes("ขับรถ") || String(currentUser.name).includes("ต้น")) {
+                status.style.color = "#2ecc71"; // เปลี่ยนตัวหนังสือเป็นสีเขียว
+                status.innerText = "กำลังสลับไปแอปคนขับ...";
+                // เตะไปหน้า driver.html ทันที!
+                window.location.href = "driver.html?auto=true";
+                return; // สั่งให้หยุดตรงนี้ ไม่ต้องโหลดหน้าพนักงานสาขา
+            }
+
+            // ถ้าเป็นพนักงานปกติ ให้เข้าหน้า Staff Portal ตามปกติ
             enterDashboard();
             fetchHistory();
+            
           } else {
             btn.disabled = false; btn.innerText = "เข้าสู่ระบบ";
             status.innerText = "❌ รหัสไม่ถูกต้อง";
@@ -616,4 +629,5 @@
   </script>
 </body>
 </html>
+
 

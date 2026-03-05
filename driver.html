@@ -170,9 +170,9 @@
       </div>
 
       <div class="card">
-        <div style="font-weight:900; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">🕒 ประวัติล่าสุด</div>
+        <div style="font-weight:900; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">🕒 ประวัติล่าสุด (4 ครั้งล่าสุด)</div>
         <ul id="history-list" style="list-style:none;">
-          <li style="text-align:center; color:#999;">ยังไม่มีประวัติ</li>
+          <li style="text-align:center; color:#999;">กำลังโหลดข้อมูล...</li>
         </ul>
       </div>
 
@@ -399,8 +399,6 @@
 
     let BRANCHES = [];
     let BRANCH_ITEMS = {};
-
-    // 🚨 เคลียร์ค่าคงที่ทิ้ง เปลี่ยนเป็นแบบ Dynamic 🚨
     let PICKUP_LOCS = [];
     let PICKUP_ITEMS_MAP = {};
 
@@ -467,17 +465,51 @@
       setTimeout(() => t.style.display = 'none', 2000);
     }
 
-    function renderHistory() {
-      document.getElementById('history-list').innerHTML = state.history.slice(-3).reverse()
-        .map(h => `<li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;"><span>${h.time}</span> <strong>${h.act}</strong></li>`)
-        .join('');
+    function fetchHistory() {
+      const list = document.getElementById('history-list');
+      list.innerHTML = '<li style="text-align:center; color:#999;">กำลังโหลดข้อมูล...</li>';
+
+      fetch(API_URL + "?action=getHistory&name=" + encodeURIComponent(state.user || ""))
+        .then(res => res.json())
+        .then(history => {
+          list.innerHTML = "";
+          if (!history || history.length === 0) {
+            list.innerHTML = '<li style="text-align:center; color:#999;">ยังไม่มีประวัติ</li>';
+            return;
+          }
+          const limitHistory = history.slice(0, 4);
+          limitHistory.forEach(item => {
+            let displayDate = item.date;
+            let displayTime = item.time;
+
+            if (String(item.date).indexOf('T') > -1) {
+              let d = new Date(item.date);
+              displayDate = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+            }
+            if (String(item.time).indexOf('T') > -1) {
+              let t = new Date(item.time);
+              displayTime = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}:${String(t.getSeconds()).padStart(2, '0')}`;
+            }
+
+            let color = String(item.action).includes("เข้า") ? "#009245" : (String(item.action).includes("ออก") ? "#ED1C24" : "#e67e22");
+            
+            let li = document.createElement('li');
+            li.style = "display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; font-size: 0.95rem; color: #555;";
+            li.innerHTML = `<span>${displayDate} ${displayTime}</span> <strong style="color:${color}">${item.action}</strong>`;
+            list.appendChild(li);
+          });
+        })
+        .catch(err => {
+          console.error(err);
+          list.innerHTML = '<li style="text-align:center; color:red;">โหลดประวัติไม่ได้</li>';
+        });
     }
 
+    // 🚨 1. อัปเดตฟังก์ชันนี้ ให้เด้งไปหน้าบันทึกเวลาถ้าจบงานแล้ว 🚨
     function restoreUIFromState() {
       if (!state.user) return;
 
       document.getElementById('userNameDisplay').innerText = "สวัสดี " + state.user;
-      renderHistory();
 
       const hasCheckedIn = state.history.some(h => h.act === "เข้างาน");
       if (hasCheckedIn) {
@@ -515,7 +547,6 @@
         document.getElementById('btn-start-pickup').classList.remove('hidden');
       }
 
-      // 🚨 ดักเคสถ้าไม่มีจุดรับของเลย ให้ผ่านไปคืนของได้เลย
       const pickupAllDone = PICKUP_LOCS.length === 0 ? true : PICKUP_LOCS.every(l => state.pickupData[l] === 'done');
       
       if (pickupAllDone && deliveryAllDone && BRANCHES.length > 0) {
@@ -529,13 +560,15 @@
         document.getElementById('btn-start-return').classList.remove('hidden');
       }
 
+      // 🚨 จุดเปลี่ยนสำคัญ: ถ้าจบงานแล้ว ให้ไปหน้า Dashboard เลย!
       if (state.returnStatus === 'done') {
         document.getElementById('badge-return').innerText = "เสร็จแล้ว ✅";
         document.getElementById('btn-start-return').classList.add('btn-disabled');
         document.getElementById('btn-checkout-main').classList.remove('btn-disabled');
+        showSection('dashboard-section'); 
+      } else {
+        showSection(hasCheckedIn ? 'tasks-section' : 'dashboard-section');
       }
-
-      showSection(hasCheckedIn ? 'tasks-section' : 'dashboard-section');
     }
 
     async function fetchDynamicOrders() {
@@ -559,7 +592,6 @@
           });
         }
 
-        // 🚨 1. จัดเรียงลำดับสาขาเป๊ะๆ ตามที่วิวสั่ง
         const MASTER_BRANCH_ORDER = ["ศรีราชา", "บางแสน", "พระยาสัจจา", "อมตะ"];
         BRANCHES.sort((a, b) => {
             let idxA = MASTER_BRANCH_ORDER.indexOf(a);
@@ -579,7 +611,6 @@
       }
     }
 
-    // 🚨 3. ฟังก์ชันดึงจุดรับของจากหน้า Admin ของวิว
     async function fetchPickupData() {
       try {
         const res = await fetch(API_URL + "?action=getPickups");
@@ -612,6 +643,8 @@
         const time = new Date().toLocaleTimeString('th-TH');
         state.history.push({ act, time });
         saveState();
+        
+        fetchHistory();
 
         if (act === "ออกงาน") {
           alert("จบงานสมบูรณ์! 🎉");
@@ -733,6 +766,7 @@
       });
 
       notifyTaskToServer("จัดของขึ้นรถ", "สาขา" + bName, missing.length ? "⚠️ไม่ครบ: " + missing.join(",") : "✅ครบ 100%");
+      fetchHistory(); 
 
       if (state.currentBranchIdx < BRANCHES.length - 1) {
         state.currentBranchIdx++;
@@ -784,7 +818,6 @@
       showSection('delivery-action-section');
     }
 
-    // 🚨 2. บีบอัดรูปให้เล็กจิ๋ว (MAX_WIDTH=500, Quality=0.5) เพื่อให้เน็ตพนักงานโหลดไหว
     function handleRealPhotoUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -805,7 +838,7 @@
         img.onload = function() {
           const canvas = document.createElement('canvas');
           
-          const MAX_WIDTH = 500; // 🚨 เล็กและเบา
+          const MAX_WIDTH = 500; 
           const scale = Math.min(1, MAX_WIDTH / img.width);
 
           canvas.width = Math.round(img.width * scale);
@@ -814,7 +847,7 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-          currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1]; // 🚨 คุณภาพ 0.5
+          currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1]; 
 
           btn.classList.remove('btn-disabled');
           btn.innerText = "ยืนยันส่งของเรียบร้อย ✅";
@@ -870,6 +903,7 @@
       currentPhotoBase64 = "";
 
       notifyTaskToServer("ส่งของ", "สาขา" + bName, "✅ เช็คอินส่งของเรียบร้อย (มีรูปในแชท)");
+      fetchHistory(); 
 
       goDeliveryOverview();
 
@@ -879,7 +913,6 @@
     }
 
     function goPickupOverview() {
-      // 🚨 ดักเคสถ้าไม่มีจุดรับของ ให้แสดงข้อความ
       if (PICKUP_LOCS.length === 0) {
         showToast("วันนี้ไม่มีรายการรับของครับ ✅");
         return;
@@ -942,6 +975,7 @@
       saveState();
 
       notifyTaskToServer("รับของ", l, "✅รับครบแล้ว");
+      fetchHistory(); 
 
       if (PICKUP_LOCS.every(loc => state.pickupData[loc] === 'done')) restoreUIFromState();
       else goPickupOverview();
@@ -953,7 +987,8 @@
       state.returnStatus = 'done';
       saveState();
       notifyTaskToServer("คืนของ", "ครัวกลาง", "✅จบงานเรียบร้อย");
-      restoreUIFromState();
+      fetchHistory(); 
+      restoreUIFromState(); // 🚨 ตรงนี้จะจับได้ว่างานเสร็จหมดแล้ว แล้วมันจะเตะไปหน้าแรกทันที!
     }
 
     function toggleMenu() { document.getElementById('menuOverlay').classList.toggle('hidden'); }
@@ -976,9 +1011,11 @@
       loadState();
       if (!state.user) { window.location.href = "index.html"; return; }
 
-      // 🚨 ดึงข้อมูลทั้งสาขาและจุดรับของตอนเปิดแอป
+      restoreUIFromState();
       fetchDynamicOrders();
       fetchPickupData();
+      
+      fetchHistory();
 
       setInterval(() => {
         const el = document.getElementById('live-clock');

@@ -256,7 +256,7 @@
         });
     }
 
-   function handleLogin() {
+    function handleLogin() {
       let pin = '';
       pinInputs.forEach(input => pin += input.value);
 
@@ -278,7 +278,15 @@
             currentUser = result;
             if (!currentUser.role) currentUser.role = 'daily';
 
-            // 🚨 แก้ลิ้งก์ให้เป็นหน้าเดียวกันแล้ว ป้องกันแอปเด้งออก 🚨
+            // 👑 1. ดักจับประธานวิว (Admin) ให้เด้งไปหน้า Admin
+            if (String(currentUser.name).includes("วิว") || String(currentUser.role).toLowerCase().includes("admin")) {
+                status.style.color = "#FFDE17"; 
+                status.innerText = "กำลังเข้าสู่หน้าระบบผู้บริหาร...";
+                window.location.href = "admin.html"; 
+                return; 
+            }
+
+            // 🚚 2. ดักจับคนขับรถ ให้เด้งไปหน้าคนขับ
             if (String(currentUser.role).includes("ขับรถ") || String(currentUser.name).includes("ต้น")) {
                 status.style.color = "#2ecc71"; 
                 status.innerText = "กำลังสลับไปแอปคนขับ...";
@@ -286,6 +294,7 @@
                 return; 
             }
 
+            // 👩‍🍳 3. ถ้าเป็นพนักงานปกติ ก็เข้าระบบลงเวลาปกติ
             enterDashboard();
             fetchHistory();
             

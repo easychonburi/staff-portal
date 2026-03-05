@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>EASY Admin - จุดรับของ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #FFF9F0; color: #333; min-height: 100vh; padding-bottom: 40px; }
+    .header { background-color: #111; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; padding: 20px; color: white; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .header h1 { color: #FFDE17; font-size: 1.8rem; font-weight: 800; line-height: 1; margin-bottom: 5px; }
+    .header p { font-size: 0.9rem; color: #ccc; }
+    .container { padding: 0 20px; max-width: 500px; margin: 0 auto; }
+    
+    .pickup-card { background: white; border: 2px solid #ddd; border-radius: 16px; padding: 15px; margin-bottom: 15px; position: relative; transition: 0.3s; }
+    .pickup-card:focus-within { border-color: #e67e22; box-shadow: 0 4px 12px rgba(230, 126, 34, 0.15); }
+    .btn-remove { position: absolute; top: 15px; right: 15px; background: #ffeaea; color: #d32f2f; border: none; border-radius: 8px; padding: 5px 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    
+    .input-group { margin-bottom: 12px; }
+    .input-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 5px; color: #555; }
+    .input-text { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 1rem; outline: none; }
+    .input-text:focus { border-color: #e67e22; }
+    textarea.input-text { resize: vertical; min-height: 80px; }
+    
+    .big-btn { width: 100%; border: none; border-radius: 16px; padding: 15px; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    .btn-add { background: #fff; color: #e67e22; border: 2px dashed #e67e22; margin-bottom: 20px; }
+    .btn-add:active { background: #fffaf5; }
+    .btn-save { background: #e67e22; color: white; box-shadow: 0 4px 0 #d35400; }
+    .btn-save:active { transform: translateY(4px); box-shadow: none; }
+    .btn-save.loading { background: #ccc; box-shadow: 0 4px 0 #999; pointer-events: none; }
+    
+    #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 25px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s; }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>EASY Admin</h1>
+    <p>ตั้งค่าจุดรับของสำหรับพนักงานขับรถวันนี้</p>
+  </div>
+
+  <div class="container">
+    <div id="pickup-list">
+      <div style="text-align:center; padding: 20px; color:#999; font-weight:600;">กำลังโหลดข้อมูล...</div>
+    </div>
+
+    <button class="big-btn btn-add" onclick="addPickupCard()">+ เพิ่มสถานที่รับของ</button>
+    <button class="big-btn btn-save" id="btn-save" onclick="savePickups()">บันทึกข้อมูลส่งให้คนขับ</button>
+  </div>
+
+  <div id="toast">บันทึกข้อมูลสำเร็จ! ✅</div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbz4BHw3tzcFThiI2ip5bh0cBkEJxjS_0RW5L7oIICQmgUDccN_hdPnaV6NzekX9VYH-/exec";
+    let pickups = [];
+
+    window.onload = () => {
+      fetchExistingPickups();
+    };
+
+    // ดึงข้อมูลเดิมมาโชว์ตอนเปิดแอป
+    async function fetchExistingPickups() {
+      try {
+        const res = await fetch(API_URL + "?action=getPickups");
+        const data = await res.json();
+        pickups = [];
+        
+        if(Object.keys(data).length === 0) {
+            // ถ้าว่างเปล่า ให้สร้างการ์ดเปล่าๆ 1 ใบ
+            addPickupCard();
+        } else {
+            // แปลงข้อมูลจาก API กลับมาเป็นการ์ด
+            for(let loc in data) {
+                pickups.push({
+                    location: loc,
+                    items: data[loc].join("\n") // เอาของมาต่อกันด้วย Enter
+                });
+            }
+            renderPickups();
+        }
+      } catch (e) {
+        console.error(e);
+        document.getElementById('pickup-list').innerHTML = '<div style="text-align:center; color:red; padding:20px;">โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรช</div>';
+      }
+    }
+
+    function renderPickups() {
+      const container = document.getElementById('pickup-list');
+      container.innerHTML = '';
+      
+      pickups.forEach((p, idx) => {
+        container.innerHTML += `
+          <div class="pickup-card">
+            <button class="btn-remove" onclick="removePickupCard(${idx})">ลบทิ้ง</button>
+            <div class="input-group">
+              <label>📍 สถานที่รับของ (เช่น ตลาด, Makro)</label>
+              <input type="text" class="input-text" value="${p.location}" onchange="updateData(${idx}, 'location', this.value)" placeholder="ระบุสถานที่...">
+            </div>
+            <div class="input-group">
+              <label>🛒 รายการของ (กด Enter เพื่อขึ้นบรรทัดใหม่)</label>
+              <textarea class="input-text" onchange="updateData(${idx}, 'items', this.value)" placeholder="ผักกาดหอม 6 ถุง\nอกไก่ 50 กิโล">${p.items}</textarea>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function addPickupCard() {
+      pickups.push({ location: "", items: "" });
+      renderPickups();
+    }
+
+    function removePickupCard(idx) {
+      if(confirm("แน่ใจหรือไม่ที่จะลบสถานที่นี้?")) {
+        pickups.splice(idx, 1);
+        renderPickups();
+      }
+    }
+
+    function updateData(idx, field, value) {
+      pickups[idx][field] = value;
+    }
+
+    function savePickups() {
+      const btn = document.getElementById('btn-save');
+      btn.innerText = "⏳ กำลังบันทึกข้อมูล...";
+      btn.classList.add('loading');
+
+      // แปลงข้อมูลเตรียมส่งให้ Google Sheet
+      const today = new Date().toLocaleDateString('th-TH');
+      let payloadList = [];
+
+      pickups.forEach(p => {
+        let loc = p.location.trim();
+        let itemsArr = p.items.split("\n").filter(i => i.trim() !== ""); // แยกบรรทัดและตัดบรรทัดว่างทิ้ง
+        
+        if (loc !== "" && itemsArr.length > 0) {
+            itemsArr.forEach(item => {
+                payloadList.push([today, loc, item.trim()]);
+            });
+        }
+      });
+
+      const payload = {
+        action: "updatePickups",
+        list: payloadList
+      };
+
+      fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
+        .then(res => res.json())
+        .then(data => {
+          btn.innerText = "บันทึกข้อมูลส่งให้คนขับ";
+          btn.classList.remove('loading');
+          showToast("บันทึกข้อมูลสำเร็จ! ✅");
+        })
+        .catch(err => {
+          btn.innerText = "บันทึกข้อมูลส่งให้คนขับ";
+          btn.classList.remove('loading');
+          alert("เกิดข้อผิดพลาด กรุณาลองใหม่");
+        });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+  </script>
+</body>
+</html>

@@ -144,7 +144,6 @@
 
 <body>
 
-  <!-- DASHBOARD -->
   <section id="dashboard-section" class="hidden">
     <div class="dashboard-header">
       <div class="header-left">
@@ -183,7 +182,6 @@
     </div>
   </section>
 
-  <!-- TASKS -->
   <section id="tasks-section" class="hidden">
     <div class="dashboard-header" style="padding-bottom: 20px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -231,7 +229,6 @@
     </div>
   </section>
 
-  <!-- PACKING OVERVIEW -->
   <section id="packing-overview-section" class="hidden">
     <div class="dashboard-header" style="padding-bottom: 20px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -249,7 +246,6 @@
     </div>
   </section>
 
-  <!-- PACKING -->
   <section id="packing-section" class="hidden">
     <div class="dashboard-header" style="padding-bottom: 20px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -277,7 +273,6 @@
     </div>
   </section>
 
-  <!-- DELIVERY OVERVIEW -->
   <section id="delivery-overview-section" class="hidden">
     <div class="dashboard-header blue" style="padding-bottom: 20px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -296,7 +291,6 @@
     </div>
   </section>
 
-  <!-- DELIVERY ACTION -->
   <section id="delivery-action-section" class="hidden">
     <div class="dashboard-header blue" style="padding-bottom: 20px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -334,7 +328,6 @@
     </div>
   </section>
 
-  <!-- PICKUP OVERVIEW -->
   <section id="pickup-overview-section" class="hidden">
     <div class="dashboard-header orange" style="padding-bottom: 20px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -353,7 +346,6 @@
     </div>
   </section>
 
-  <!-- PICKUP ACTION -->
   <section id="pickup-section" class="hidden">
     <div class="dashboard-header orange" style="padding-bottom: 20px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -375,7 +367,6 @@
     </div>
   </section>
 
-  <!-- RETURN -->
   <section id="return-action-section" class="hidden">
     <div class="dashboard-header dark" style="padding-bottom: 20px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -409,21 +400,9 @@
     let BRANCHES = [];
     let BRANCH_ITEMS = {};
 
-    // (ตอนนี้ยังใช้ค่าคงที่ก่อน) ถ้าวิวทำ pickup admin ทีหลังค่อยเปลี่ยนให้ดึงจากชีท
-    const PICKUP_LOCS = ["ตลาด", "Makro"];
-
-const PICKUP_ITEMS_MAP = {
-  "ตลาด": [
-    "ผักกาดหอม 6 ถุง"
-  ],
-
-  "Makro": [
-    "น้ำมัน 1 แกลลอน",
-    "น้ำตาล 5 ถุง",
-    "น้ำปลา 1 แกลลอน",
-    "น้ำมะนาว 3 ขวด"
-  ]
-};
+    // 🚨 เคลียร์ค่าคงที่ทิ้ง เปลี่ยนเป็นแบบ Dynamic 🚨
+    let PICKUP_LOCS = [];
+    let PICKUP_ITEMS_MAP = {};
 
     let state = {
       user: null,
@@ -506,7 +485,6 @@ const PICKUP_ITEMS_MAP = {
         document.getElementById('btn-go-tasks').classList.remove('hidden');
       }
 
-      // ✅ ไม่บังคับกรอกจำนวนแล้ว: แค่เลือกสถานะให้ครบก็พอ
       const packingAllDone = BRANCHES.length > 0
         ? BRANCHES.every(b => (state.packingData[b] || []).every(i => i.status !== 'pending'))
         : false;
@@ -537,8 +515,10 @@ const PICKUP_ITEMS_MAP = {
         document.getElementById('btn-start-pickup').classList.remove('hidden');
       }
 
-      const pickupAllDone = PICKUP_LOCS.every(l => state.pickupData[l] === 'done');
-      if (pickupAllDone && deliveryAllDone) {
+      // 🚨 ดักเคสถ้าไม่มีจุดรับของเลย ให้ผ่านไปคืนของได้เลย
+      const pickupAllDone = PICKUP_LOCS.length === 0 ? true : PICKUP_LOCS.every(l => state.pickupData[l] === 'done');
+      
+      if (pickupAllDone && deliveryAllDone && BRANCHES.length > 0) {
         document.getElementById('badge-pickup').className = "badge done";
         document.getElementById('badge-pickup').innerText = "เสร็จแล้ว ✅";
         document.getElementById('btn-start-pickup').classList.replace('orange', 'secondary');
@@ -579,6 +559,16 @@ const PICKUP_ITEMS_MAP = {
           });
         }
 
+        // 🚨 1. จัดเรียงลำดับสาขาเป๊ะๆ ตามที่วิวสั่ง
+        const MASTER_BRANCH_ORDER = ["ศรีราชา", "บางแสน", "พระยาสัจจา", "อมตะ"];
+        BRANCHES.sort((a, b) => {
+            let idxA = MASTER_BRANCH_ORDER.indexOf(a);
+            let idxB = MASTER_BRANCH_ORDER.indexOf(b);
+            if(idxA === -1) idxA = 99;
+            if(idxB === -1) idxB = 99;
+            return idxA - idxB;
+        });
+
         if (hasNew) {
           saveState();
           showToast("อัปเดตรายการจัดของแล้ว!");
@@ -587,6 +577,27 @@ const PICKUP_ITEMS_MAP = {
       } catch (e) {
         console.error(e);
       }
+    }
+
+    // 🚨 3. ฟังก์ชันดึงจุดรับของจากหน้า Admin ของวิว
+    async function fetchPickupData() {
+      try {
+        const res = await fetch(API_URL + "?action=getPickups");
+        const data = await res.json();
+        if (data && Object.keys(data).length > 0) {
+          PICKUP_ITEMS_MAP = data;
+          PICKUP_LOCS = Object.keys(data);
+          
+          PICKUP_LOCS.forEach(loc => {
+            if (!state.pickupData[loc]) state.pickupData[loc] = 'pending';
+          });
+          saveState();
+          restoreUIFromState();
+        } else {
+          PICKUP_LOCS = [];
+          PICKUP_ITEMS_MAP = {};
+        }
+      } catch (e) { console.error("Pickup Error:", e); }
     }
 
     function recordAction(act) {
@@ -642,79 +653,72 @@ const PICKUP_ITEMS_MAP = {
       showSection('packing-section');
     }
 
-function renderPackingList() {
-  const bName = BRANCHES[state.currentBranchIdx];
-  document.getElementById('packing-title').innerText = "สาขา" + bName;
+    function renderPackingList() {
+      const bName = BRANCHES[state.currentBranchIdx];
+      document.getElementById('packing-title').innerText = "สาขา" + bName;
 
-  document.getElementById('packing-list-container').innerHTML = (state.packingData[bName] || []).map((item) => {
-    const parts = splitItemName(item.name);
+      document.getElementById('packing-list-container').innerHTML = (state.packingData[bName] || []).map((item) => {
+        const parts = splitItemName(item.name);
 
-    const isPicked = (item.status === 'ok' || item.status === 'partial' || item.status === 'no');
-    const hasQty = String(item.actualQty || '').trim().length > 0;
+        const isPicked = (item.status === 'ok' || item.status === 'partial' || item.status === 'no');
+        const hasQty = String(item.actualQty || '').trim().length > 0;
 
-    // ✅ เฟดเมื่อ:
-    // - ok เฟดเลย
-    // - no เฟดเลย
-    // - partial เฟด "หลังกรอกจำนวนแล้วเท่านั้น"
-    const rowDone =
-      (item.status === 'ok') ||
-      (item.status === 'no') ||
-      (item.status === 'partial' && hasQty);
+        const rowDone =
+          (item.status === 'ok') ||
+          (item.status === 'no') ||
+          (item.status === 'partial' && hasQty);
 
-    const okClass = `pill base-ok ${item.status === 'ok' ? 'ok' : (isPicked ? 'dim' : '')}`;
-    const partialClass = `pill base-partial ${item.status === 'partial' ? 'partial' : (isPicked ? 'dim' : '')}`;
-    const noClass = `pill base-no ${item.status === 'no' ? 'no' : (isPicked ? 'dim' : '')}`;
+        const okClass = `pill base-ok ${item.status === 'ok' ? 'ok' : (isPicked ? 'dim' : '')}`;
+        const partialClass = `pill base-partial ${item.status === 'partial' ? 'partial' : (isPicked ? 'dim' : '')}`;
+        const noClass = `pill base-no ${item.status === 'no' ? 'no' : (isPicked ? 'dim' : '')}`;
 
-    return `
-      <div class="item-row ${rowDone ? 'done' : ''}">
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items: baseline;">
-          <strong style="color:#111; font-size:1.15rem;">${parts.name}</strong>
-          <strong style="color:#8b1e1e; font-size:1.2rem;">${parts.qty}</strong>
-        </div>
+        return `
+          <div class="item-row ${rowDone ? 'done' : ''}">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items: baseline;">
+              <strong style="color:#111; font-size:1.15rem;">${parts.name}</strong>
+              <strong style="color:#8b1e1e; font-size:1.2rem;">${parts.qty}</strong>
+            </div>
 
-        <div style="display:flex; gap:6px;">
-          <div class="${okClass}" onclick="updateItem('${item.name}','ok')">ครบ</div>
-          <div class="${partialClass}" onclick="updateItem('${item.name}','partial')">ไม่ครบ</div>
-          <div class="${noClass}" onclick="updateItem('${item.name}','no')">ไม่มี</div>
-        </div>
+            <div style="display:flex; gap:6px;">
+              <div class="${okClass}" onclick="updateItem('${item.name}','ok')">ครบ</div>
+              <div class="${partialClass}" onclick="updateItem('${item.name}','partial')">ไม่ครบ</div>
+              <div class="${noClass}" onclick="updateItem('${item.name}','no')">ไม่มี</div>
+            </div>
 
-        ${item.status === 'partial' ? `
-          <input type="number" class="input-qty"
-            value="${item.actualQty || ''}"
-            placeholder="ระบุจำนวนที่จัดได้..."
-            oninput="updateItemQty(this,'${item.name}',this.value)">
-        ` : ''}
-      </div>
-    `;
-  }).join('');
+            ${item.status === 'partial' ? `
+              <input type="number" class="input-qty"
+                value="${item.actualQty || ''}"
+                placeholder="ระบุจำนวนที่จัดได้..."
+                oninput="updateItemQty(this,'${item.name}',this.value)">
+            ` : ''}
+          </div>
+        `;
+      }).join('');
 
-  // ✅ ไม่บังคับจำนวนแล้ว: แค่สถานะไม่ pending ก็ไปต่อได้
-  const canNext = (state.packingData[bName] || []).every(i => i.status !== 'pending');
-  document.getElementById('btn-next-branch').classList.toggle('hidden', !canNext);
-}
+      const canNext = (state.packingData[bName] || []).every(i => i.status !== 'pending');
+      document.getElementById('btn-next-branch').classList.toggle('hidden', !canNext);
+    }
 
-function updateItem(name, status) {
-  const bName = BRANCHES[state.currentBranchIdx];
-  const item = (state.packingData[bName] || []).find(i => i.name === name);
-  if (!item) return;
+    function updateItem(name, status) {
+      const bName = BRANCHES[state.currentBranchIdx];
+      const item = (state.packingData[bName] || []).find(i => i.name === name);
+      if (!item) return;
 
-  item.status = status;
-  if (status !== 'partial') item.actualQty = '';
-  saveState();
-  renderPackingList();
-}
+      item.status = status;
+      if (status !== 'partial') item.actualQty = '';
+      saveState();
+      renderPackingList();
+    }
 
-function updateItemQty(el, name, qty) {
-  const bName = BRANCHES[state.currentBranchIdx];
-  const item = (state.packingData[bName] || []).find(i => i.name === name);
-  if (!item) return;
+    function updateItemQty(el, name, qty) {
+      const bName = BRANCHES[state.currentBranchIdx];
+      const item = (state.packingData[bName] || []).find(i => i.name === name);
+      if (!item) return;
 
-  item.actualQty = qty;
-  saveState();
-
-  // ✅ พิมพ์ปุ๊บ เฟด/ไม่เฟดอัปเดตทันที
-  renderPackingList();
-}
+      item.actualQty = qty;
+      saveState();
+      renderPackingList();
+    }
 
     function finishBranch() {
       const bName = BRANCHES[state.currentBranchIdx];
@@ -780,6 +784,7 @@ function updateItemQty(el, name, qty) {
       showSection('delivery-action-section');
     }
 
+    // 🚨 2. บีบอัดรูปให้เล็กจิ๋ว (MAX_WIDTH=500, Quality=0.5) เพื่อให้เน็ตพนักงานโหลดไหว
     function handleRealPhotoUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -799,7 +804,8 @@ function updateItemQty(el, name, qty) {
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 800;
+          
+          const MAX_WIDTH = 500; // 🚨 เล็กและเบา
           const scale = Math.min(1, MAX_WIDTH / img.width);
 
           canvas.width = Math.round(img.width * scale);
@@ -808,7 +814,7 @@ function updateItemQty(el, name, qty) {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-          currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+          currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1]; // 🚨 คุณภาพ 0.5
 
           btn.classList.remove('btn-disabled');
           btn.innerText = "ยืนยันส่งของเรียบร้อย ✅";
@@ -873,6 +879,12 @@ function updateItemQty(el, name, qty) {
     }
 
     function goPickupOverview() {
+      // 🚨 ดักเคสถ้าไม่มีจุดรับของ ให้แสดงข้อความ
+      if (PICKUP_LOCS.length === 0) {
+        showToast("วันนี้ไม่มีรายการรับของครับ ✅");
+        return;
+      }
+
       document.getElementById('pickup-overview-list').innerHTML = PICKUP_LOCS.map((l) => {
         const done = state.pickupData[l] === 'done';
         return `
@@ -896,7 +908,6 @@ function updateItemQty(el, name, qty) {
 
       const items = PICKUP_ITEMS_MAP[l] || [];
 
-      // ✅ กล่องเดียว (ตามรูปที่ 2)
       const lines = items.map(raw => {
         const p = splitItemName(raw);
         return `
@@ -965,8 +976,9 @@ function updateItemQty(el, name, qty) {
       loadState();
       if (!state.user) { window.location.href = "index.html"; return; }
 
-      restoreUIFromState();
+      // 🚨 ดึงข้อมูลทั้งสาขาและจุดรับของตอนเปิดแอป
       fetchDynamicOrders();
+      fetchPickupData();
 
       setInterval(() => {
         const el = document.getElementById('live-clock');

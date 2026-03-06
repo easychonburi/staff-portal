@@ -163,6 +163,11 @@
     <div class="menu-box" onclick="event.stopPropagation()">
       <div class="menu-title">เมนูเพิ่มเติม</div>
       <div class="menu-sub">เลือกเมนูที่ต้องการใช้งาน</div>
+      
+      <button class="menu-item-btn secondary" onclick="window.location.href='stock.html'">
+        <span>📦</span><span>ระบบเช็คสต๊อก</span>
+      </button>
+
       <button class="menu-item-btn secondary" onclick="refreshPage()"><span>🔄</span><span>รีเฟรชหน้า</span></button>
       <button class="menu-item-btn danger" onclick="closeMenu()"><span>✕</span><span>ปิดเมนู</span></button>
     </div>
@@ -278,7 +283,14 @@
             currentUser = result;
             if (!currentUser.role) currentUser.role = 'daily';
 
-            // 👑 1. ดักจับประธานวิว (Admin) ให้เด้งไปหน้า Admin
+            // 🚨 จังหวะล็อกอิน บันทึกชื่อและสาขาลงเครื่อง เพื่อให้หน้า เช็คสต๊อก ดึงไปใช้ได้! 🚨
+            localStorage.setItem('currentUser', JSON.stringify({
+               name: currentUser.name,
+               branch: currentUser.branch,
+               role: currentUser.role
+            }));
+
+            // 👑 ดักจับประธานวิว (Admin) 
             if (String(currentUser.name).includes("วิว") || String(currentUser.role).toLowerCase().includes("admin")) {
                 status.style.color = "#FFDE17"; 
                 status.innerText = "กำลังเข้าสู่หน้าระบบผู้บริหาร...";
@@ -286,7 +298,7 @@
                 return; 
             }
 
-            // 🚚 2. ดักจับคนขับรถ ให้เด้งไปหน้าคนขับ
+            // 🚚 ดักจับคนขับรถ 
             if (String(currentUser.role).includes("ขับรถ") || String(currentUser.name).includes("ต้น")) {
                 status.style.color = "#2ecc71"; 
                 status.innerText = "กำลังสลับไปแอปคนขับ...";
@@ -294,7 +306,6 @@
                 return; 
             }
 
-            // 👩‍🍳 3. ถ้าเป็นพนักงานปกติ ก็เข้าระบบลงเวลาปกติ
             enterDashboard();
             fetchHistory();
             

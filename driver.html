@@ -505,7 +505,6 @@
         });
     }
 
-    // 🚨 1. อัปเดตฟังก์ชันนี้ ให้เด้งไปหน้าบันทึกเวลาถ้าจบงานแล้ว 🚨
     function restoreUIFromState() {
       if (!state.user) return;
 
@@ -560,7 +559,6 @@
         document.getElementById('btn-start-return').classList.remove('hidden');
       }
 
-      // 🚨 จุดเปลี่ยนสำคัญ: ถ้าจบงานแล้ว ให้ไปหน้า Dashboard เลย!
       if (state.returnStatus === 'done') {
         document.getElementById('badge-return').innerText = "เสร็จแล้ว ✅";
         document.getElementById('btn-start-return').classList.add('btn-disabled');
@@ -988,7 +986,7 @@
       saveState();
       notifyTaskToServer("คืนของ", "ครัวกลาง", "✅จบงานเรียบร้อย");
       fetchHistory(); 
-      restoreUIFromState(); // 🚨 ตรงนี้จะจับได้ว่างานเสร็จหมดแล้ว แล้วมันจะเตะไปหน้าแรกทันที!
+      restoreUIFromState(); 
     }
 
     function toggleMenu() { document.getElementById('menuOverlay').classList.toggle('hidden'); }
@@ -1001,14 +999,15 @@
     }
 
     window.onload = () => {
+      loadState();
+
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('auto') === 'true') {
         state.user = "รัตนากร (ต้น)";
-        saveState();
+        saveState(); 
         window.history.replaceState({}, document.title, window.location.pathname);
       }
 
-      loadState();
       if (!state.user) { window.location.href = "index.html"; return; }
 
       restoreUIFromState();

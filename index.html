@@ -339,7 +339,10 @@
       const list = document.getElementById('history-list');
       list.innerHTML = '<li class="history-item" style="justify-content:center;color:#999;">กำลังโหลดข้อมูล...</li>';
 
-      fetch(API_URL + "?action=getHistory&name=" + encodeURIComponent(currentUser.name || ""))
+      // 🚨 จุดที่แก้: เติม "&t=" + Date.now() เพื่อสับขาหลอกมือถือไม่ให้จำแคช (Cache Buster) 🚨
+      const fetchUrl = API_URL + "?action=getHistory&name=" + encodeURIComponent(currentUser.name || "") + "&t=" + Date.now();
+
+      fetch(fetchUrl)
         .then(res => res.json())
         .then(history => {
           list.innerHTML = "";
@@ -654,3 +657,4 @@
   </script>
 </body>
 </html>
+

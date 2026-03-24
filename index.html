@@ -283,7 +283,6 @@
             currentUser = result;
             if (!currentUser.role) currentUser.role = 'daily';
 
-            // 🚨 จังหวะล็อกอิน บันทึกชื่อและสาขาลงเครื่อง เพื่อให้หน้า เช็คสต๊อก ดึงไปใช้ได้! 🚨
             localStorage.setItem('currentUser', JSON.stringify({
                name: currentUser.name,
                branch: currentUser.branch,
@@ -339,7 +338,6 @@
       const list = document.getElementById('history-list');
       list.innerHTML = '<li class="history-item" style="justify-content:center;color:#999;">กำลังโหลดข้อมูล...</li>';
 
-      // 🚨 จุดที่แก้: เติม "&t=" + Date.now() เพื่อสับขาหลอกมือถือไม่ให้จำแคช (Cache Buster) 🚨
       const fetchUrl = API_URL + "?action=getHistory&name=" + encodeURIComponent(currentUser.name || "") + "&t=" + Date.now();
 
       fetch(fetchUrl)
@@ -494,6 +492,7 @@
       sendDataToServer(reason, manualTime);
     }
 
+    // ✅ แก้ไข: เพิ่ม headers และ cache: "no-store" เพื่อป้องกัน Service Worker cache POST request
     function sendDataToServer(note, manualTime) {
       document.getElementById('customModal').classList.remove('hidden');
       document.getElementById('modalReasonForm').classList.add('hidden');
@@ -512,6 +511,8 @@
 
       fetch(API_URL, {
         method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        cache: "no-store",
         body: JSON.stringify(data)
       })
         .then(res => res.json())
@@ -657,4 +658,3 @@
   </script>
 </body>
 </html>
-
